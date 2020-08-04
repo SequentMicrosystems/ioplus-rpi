@@ -6,6 +6,8 @@ This is the command to control [IO_PLUS Stackable Card for Raspberry Pi](https:/
 
 ![IO-PLUS](res/ioplus.jpg)
 
+## Setup
+
 Don't forget to enable I2C communication:
 ```bash
 ~$ sudo raspi-config

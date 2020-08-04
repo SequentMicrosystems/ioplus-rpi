@@ -1562,7 +1562,7 @@ static void doDacWrite(int argc, char *argv[])
 	}
 }
 
-int adcGet(dev, int ch, float* val)
+int adcGet(int dev, int ch, float* val)
 {
 	u8 buff[2] =
 	{

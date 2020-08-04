@@ -1,10 +1,10 @@
-[![ioplus-rpi](readmeres/sequent.jpg)](https://www.sequentmicrosystems.com)
+[![ioplus-rpi](res/sequent.jpg)](https://www.sequentmicrosystems.com)
 
 # ioplus-rpi
 
 This is the command to control [IO_PLUS Stackable Card for Raspberry Pi](https://sequentmicrosystems.com/index.php?route=product/product&product_id=42)
 
-[![IO-PLUS](readmeres/ioplus.jpg)]
+[![IO-PLUS](res/ioplus.jpg)]
 
 Don't forget to enable I2C communication:
 ```bash

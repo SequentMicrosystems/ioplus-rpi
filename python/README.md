@@ -1,3 +1,5 @@
+[![ioplus-rpi](res/sequent.jpg)](https://www.sequentmicrosystems.com)
+
 # libioplus
 
 This is the python library to control the [io-plus](https://sequentmicrosystems.com/index.php?route=product/product&path=33&product_id=42) Raspberry Pi Stackable Card for Home Automation.

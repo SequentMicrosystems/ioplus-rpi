@@ -563,7 +563,7 @@ static void doRelayTest(int argc, char* argv[])
 		}
 	}
 //relay test****************************
-	if (strcasecmp(argv[2], "rtest") == 0)
+	if (strcasecmp(argv[2], "reltest") == 0)
 	{
 		relVal = 0;
 		printf(
@@ -1363,7 +1363,7 @@ const CliCmdType CMD_OD_WRITE =
 		"odwr",
 		2,
 		&doOdWrite,
-		"\todwr:		Write open drain output pwm value (0% - 100%)\n",
+		"\todwr:		Write open drain output pwm value (0% - 100%), Warning: This function change the output of the coresponded DAC channel\n",
 		"\tUsage:		ioplus <id> odwr <channel> <value>\n",
 		"",
 		"\tExample:		ioplus 0 odwr 2 12.5; Write pwm 12.5% to open drain channel #2 on Board #0\n"};
@@ -1516,7 +1516,7 @@ const CliCmdType CMD_DAC_WRITE =
 		"dacwr",
 		2,
 		&doDacWrite,
-		"\tdacwr:		Write DAC output voltage value (0..10V)\n",
+		"\tdacwr:		Write DAC output voltage value (0..10V), Warning: This function change the output of the coresponded open-drain channel\n",
 		"\tUsage:		ioplus <id> dacwr <channel> <value>\n",
 		"",
 		"\tExample:		ioplus 0 dacwr 2 2.5; Write 2.5V to DAC channel #2 on Board #0\n"};

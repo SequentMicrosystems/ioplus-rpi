@@ -19,13 +19,10 @@
 #include "thread.h"
 
 #define VERSION_BASE	(int)1
-#define VERSION_MAJOR	(int)0
+#define VERSION_MAJOR	(int)1
 #define VERSION_MINOR	(int)0
 
 #define UNUSED(X) (void)X      /* To avoid gcc/g++ warnings */
-#define CMD_ARRAY_SIZE	24
-
-CliCmdType gCmdArray[CMD_ARRAY_SIZE];
 
 char *warranty =
 	"	       Copyright (c) 2016-2020 Sequent Microsystems\n"
@@ -43,22 +40,47 @@ char *warranty =
 		"		You should have received a copy of the GNU Lesser General Public License\n"
 		"		along with this program. If not, see <http://www.gnu.org/licenses/>.";
 
+char *cn = " SIGNAL  CONNECTOR    SIGNAL\n"
+	"           |---|\n"
+	" 3.3V  -- 1|O O| 2--  +5V\n"
+	" OPTO1 -- 3|O O| 4--  OPTO VEXT\n"
+	" OPTO2 -- 5|O O| 6--  GND\n"
+	" OPTO4 -- 7|O O| 8--  OPTO3\n"
+	" GND   -- 9|O O|10--  ADC7\n"
+	" ADC6  --11|O O|12--  ADC8\n"
+	" ADC5  --13|O O|14--  GND\n"
+	" ADC3  --15|O O|16--  ADC4\n"
+	" 3.3V  --17|O O|18--  ADC2\n"
+	" ADC1  --19|O O|20--  GND\n"
+	" GPIO3 --21|O O|22--  IO4\n"
+	" GPIO1 --23|O O|24--  IO2\n"
+	" GND   --25|O O|26--  OC3\n"
+	" DAC3  --27|O O|28--  OC4\n"
+	" OPTO5 --29|O O|30--  GND\n"
+	" OPTO6 --31|O O|32--  OC1\n"
+	" DAC2  --33|O O|34--  GND\n"
+	" OPTO7 --35|O O|36--  OC2\n"
+	" DAC4  --37|O O|38--  OPTO8\n"
+	" 12VEXT--39|O O|40--  DAC1\n"
+	"           |---|\n";
+
 void usage(void)
 {
 	int i = 0;
-	for (i = 0; i < CMD_ARRAY_SIZE; i++)
+	while (gCmdArray[i] != NULL)
 	{
-		if (gCmdArray[i].name != NULL)
+		if (gCmdArray[i]->name != NULL)
 		{
-			if (strlen(gCmdArray[i].usage1) > 2)
+			if (strlen(gCmdArray[i]->usage1) > 2)
 			{
-				printf("%s", gCmdArray[i].usage1);
+				printf("%s", gCmdArray[i]->usage1);
 			}
-			if (strlen(gCmdArray[i].usage2) > 2)
+			if (strlen(gCmdArray[i]->usage2) > 2)
 			{
-				printf("%s", gCmdArray[i].usage2);
+				printf("%s", gCmdArray[i]->usage2);
 			}
 		}
+		i++;
 	}
 	printf("Where: <id> = Board level id = 0..7\n");
 	printf("Type ioplus -h <command> for more help\n");
@@ -129,39 +151,44 @@ static void doHelp(int argc, char *argv[])
 	int i = 0;
 	if (argc == 3)
 	{
-		for (i = 0; i < CMD_ARRAY_SIZE; i++)
+		while (NULL != gCmdArray[i])
 		{
-			if (gCmdArray[i].name != NULL)
+			if (gCmdArray[i]->name != NULL)
 			{
-				if (strcasecmp(argv[2], gCmdArray[i].name) == 0)
+				if (strcasecmp(argv[2], gCmdArray[i]->name) == 0)
 				{
-					printf("%s%s%s%s", gCmdArray[i].help, gCmdArray[i].usage1,
-						gCmdArray[i].usage2, gCmdArray[i].example);
+					printf("%s%s%s%s", gCmdArray[i]->help, gCmdArray[i]->usage1,
+						gCmdArray[i]->usage2, gCmdArray[i]->example);
 					break;
 				}
 			}
+			i++;
 		}
-		if (CMD_ARRAY_SIZE == i)
+		if (NULL == gCmdArray[i])
 		{
 			printf("Option \"%s\" not found\n", argv[2]);
-			for (i = 0; i < CMD_ARRAY_SIZE; i++)
+			i = 0;
+			while (NULL != gCmdArray[i])
 			{
-				if (gCmdArray[i].name != NULL)
+				if (gCmdArray[i]->name != NULL)
 				{
-					printf("%s", gCmdArray[i].help);
+					printf("%s", gCmdArray[i]->help);
 					break;
 				}
+				i++;
 			}
 		}
 	}
 	else
 	{
-		for (i = 0; i < CMD_ARRAY_SIZE; i++)
+		i = 0;
+		while (NULL != gCmdArray[i])
 		{
-			if (gCmdArray[i].name != NULL)
+			if (gCmdArray[i]->name != NULL)
 			{
-				printf("%s", gCmdArray[i].help);
+				printf("%s", gCmdArray[i]->help);
 			}
+			i++;
 		}
 	}
 }
@@ -172,7 +199,7 @@ const CliCmdType CMD_VERSION =
 	"-v",
 	1,
 	&doVersion,
-	"\t-v		Display the version number\n",
+	"\t-v		Display the ioplus command version number\n",
 	"\tUsage:		ioplus -v\n",
 	"",
 	"\tExample:		ioplus -v  Display the version number\n"};
@@ -202,6 +229,22 @@ const CliCmdType CMD_WAR =
 static void doWarranty(int argc UNU, char* argv[] UNU)
 {
 	printf("%s\n", warranty);
+}
+
+static void doDispPinout(int argc, char* argv[]);
+const CliCmdType CMD_PINOUT =
+{
+	"-pinout",
+	1,
+	&doDispPinout,
+	"\t-pinout		Display the board io connector pinout\n",
+	"\tUsage:		ioplus -pinout\n",
+	"",
+	"\tExample:		ioplus -pinout  Display the board io connector pinout\n"};
+
+static void doDispPinout(int argc UNU, char* argv[] UNU)
+{
+	printf("%s\n", cn);
 }
 
 static void doList(int argc, char *argv[]);
@@ -245,9 +288,130 @@ static void doList(int argc, char *argv[])
 	printf("\n");
 }
 
+static void doBoard(int argc, char *argv[]);
+const CliCmdType CMD_BOARD =
+{
+	"board",
+	2,
+	&doBoard,
+	"\tboard		Display the board status and firmware version number\n",
+	"\tUsage:		ioplus <stack> board\n",
+	"",
+	"\tExample:		ioplus 0 board  Display vcc, temperature, firmware version \n"};
+
+static void doBoard(int argc, char *argv[])
+{
+	int dev = -1;
+	u8 buff[3];
+	int resp = 0;
+	int temperature = 25;
+	float voltage = 3.3;
+
+	if (argc != 3)
+	{
+		printf("Invalid arguments number type \"ioplus -h\" for details\n");
+		exit(1);
+	}
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		exit(1);
+	}
+	resp = i2cMem8Read(dev, I2C_MEM_DIAG_TEMPERATURE_ADD, buff, 3);
+	if (FAIL == resp)
+	{
+		printf("Fail to read board info!\n");
+		exit(1);
+	}
+	temperature = buff[0];
+	memcpy(&resp, &buff[1], 2);
+	voltage = (float)resp / 1000; //read in milivolts
+
+	resp = i2cMem8Read(dev, I2C_MEM_REVISION_MAJOR_ADD, buff, 2);
+	if (FAIL == resp)
+	{
+		printf("Fail to read board info!\n");
+		exit(1);
+	}
+	printf("Firmware ver %02d.%02d, CPU temperature %d C, voltage %0.2f V\n",
+		(int)buff[0], (int)buff[1], temperature, voltage);
+}
+#ifdef HW_DEBUG
+#define ERR_FIFO_MAX_SIZE 512
+static void doGetErrors(int argc, char *argv[]);
+const CliCmdType CMD_ERR =
+{
+	"err",
+	2,
+	&doGetErrors,
+	"\terr		Display the board logged errors \n",
+	"\tUsage:		ioplus <stack> err\n",
+	"",
+	"\tExample:		ioplus 0 err  Display errors strings readed from the board \n"};
+
+static void doGetErrors(int argc, char *argv[])
+{
+	int dev = -1;
+	u8 buff[ERR_FIFO_MAX_SIZE];
+	int resp = 0;
+	u16 size = 0;
+	int retry = 0;
+
+	if (argc != 3)
+	{
+		printf("Invalid arguments number type \"ioplus -h\" for details\n");
+		exit(1);
+	}
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		exit(1);
+	}
+	buff[0] = 1;
+	resp = i2cMem8Write(dev, I2C_DBG_CMD, buff, 1);
+	while ( (size == 0) && (retry < 10))
+	{
+		resp = i2cMem8Read(dev, I2C_DBG_FIFO_SIZE, buff, 2);
+		if (FAIL != resp)
+		{
+			memcpy(&size, buff, 2);
+		}
+		retry++;
+	}
+	if (0 == size)
+	{
+		printf("Fail to read board error log, fifo empty!\n");
+		exit(1);
+	}
+	if (size > ERR_FIFO_MAX_SIZE)
+	{
+		size = ERR_FIFO_MAX_SIZE;
+	}
+	resp = i2cMem8Read(dev, I2C_DBG_FIFO_ADD, buff, size);
+	if (FAIL == resp)
+	{
+		printf("Fail to read board error log, fifo read %d bytes error!\n",
+		(int)size);
+		exit(1);
+	}
+	buff[size - 1] = 0;
+
+	printf("%s\n", (char*)buff);
+	for (retry = 0; retry < size; retry++)
+	{
+		printf("%02x ", buff[retry]);
+		if (0 == ((retry + 1) % 16))
+		{
+			printf("\n");
+		}
+	}
+	printf("\n");
+}
+#endif
+
 int relayChSet(int dev, u8 channel, OutStateEnumType state)
 {
-	int resp;
+	int resp = 0;
 	u8 buff[2];
 
 	if ( (channel < CHANNEL_NR_MIN) || (channel > RELAY_CH_NR_MAX))
@@ -1632,70 +1796,646 @@ static void doAdcRead(int argc, char *argv[])
 	}
 }
 
-static void cliInit(void)
+void getCalStat(int dev)
 {
-	int i = 0;
+	u8 buff[2];
 
-	memset(gCmdArray, 0, sizeof(CliCmdType) * CMD_ARRAY_SIZE);
-	memcpy(&gCmdArray[i], &CMD_VERSION, sizeof(CliCmdType));
-	i++;
-	memcpy(&gCmdArray[i], &CMD_HELP, sizeof(CliCmdType));
-	i++;
-	memcpy(&gCmdArray[i], &CMD_WAR, sizeof(CliCmdType));
-	i++;
-	memcpy(&gCmdArray[i], &CMD_LIST, sizeof(CliCmdType));
-	i++;
-	memcpy(&gCmdArray[i], &CMD_RELAY_WRITE, sizeof(CliCmdType));
-	i++;
-	memcpy(&gCmdArray[i], &CMD_RELAY_READ, sizeof(CliCmdType));
-	i++;
-	memcpy(&gCmdArray[i], &CMD_TEST, sizeof(CliCmdType));
-	i++;
-	memcpy(&gCmdArray[i], &CMD_GPIO_WRITE, sizeof(CliCmdType));
-	i++;
-	memcpy(&gCmdArray[i], &CMD_GPIO_READ, sizeof(CliCmdType));
-	i++;
-	memcpy(&gCmdArray[i], &CMD_GPIO_DIR_WRITE, sizeof(CliCmdType));
-	i++;
-	memcpy(&gCmdArray[i], &CMD_GPIO_DIR_READ, sizeof(CliCmdType));
-	i++;
-	memcpy(&gCmdArray[i], &CMD_OPTO_READ, sizeof(CliCmdType));
-	i++;
-	memcpy(&gCmdArray[i], &CMD_OD_READ, sizeof(CliCmdType));
-	i++;
-	memcpy(&gCmdArray[i], &CMD_OD_WRITE, sizeof(CliCmdType));
-	i++;
-	memcpy(&gCmdArray[i], &CMD_DAC_READ, sizeof(CliCmdType));
-	i++;
-	memcpy(&gCmdArray[i], &CMD_DAC_WRITE, sizeof(CliCmdType));
-	i++;
-	memcpy(&gCmdArray[i], &CMD_ADC_READ, sizeof(CliCmdType));
+	busyWait(100);
+	if (OK != i2cMem8Read(dev, I2C_MEM_CALIB_STATUS, buff, 1))
+	{
+		printf("Fail to read calibration status!\n");
+		exit(1);
+	}
+	switch (buff[0])
+	{
+	case 0:
+		printf("Calibration in progress\n");
+		break;
+	case 1:
+		printf("Calibration done\n");
+		break;
+	case 2:
+		printf("Calibration error!\n");
+		break;
+	default:
+		printf("Unknown calibration status\n");
+		break;
+	}
 }
+
+static void doAdcCal(int argc, char *argv[]);
+const CliCmdType CMD_ADC_CAL =
+	{
+		"adccal",
+		2,
+		&doAdcCal,
+		"\tadccal:		Calibrate one ADC channel, the calibration must be done in 2 points at min 2V apart\n",
+		"\tUsage:		ioplus <id> adccal <channel> <value>\n",
+		"",
+		"\tExample:		ioplus 0 adccal 2 0.5; Calibrate the voltage input on ADC channel #2 on Board #0 at 0.5V\n"};
+
+static void doAdcCal(int argc, char *argv[])
+{
+	int ch = 0;
+	float val = 0;
+	int dev = 0;
+	u8 buff[4] =
+	{
+		0,
+		0};
+	u16 raw = 0;
+
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		exit(1);
+	}
+
+	if (argc == 5)
+	{
+		ch = atoi(argv[3]);
+		if ( (ch < CHANNEL_NR_MIN) || (ch > ADC_CH_NR_MAX))
+		{
+			printf("ADC channel out of range!\n");
+			exit(1);
+		}
+
+		val = atof(argv[4]);
+		if ( (val < 0) || (val > 3.3))
+		{
+			printf("ADC calibration value out of range!\n");
+			exit(1);
+		}
+		raw = (u16)ceil(val * VOLT_TO_MILIVOLT);
+		memcpy(buff, &raw, 2);
+		buff[2] = ch;
+		buff[3] = CALIBRATION_KEY;
+
+		if (OK != i2cMem8Write(dev, I2C_MEM_CALIB_VALUE, buff, 4))
+		{
+			printf("Fail to write calibration data!\n");
+			exit(1);
+		}
+
+		getCalStat(dev);
+	}
+	else
+	{
+		printf("Invalid params number:\n %s", CMD_ADC_CAL.usage1);
+		exit(1);
+	}
+}
+
+static void doAdcCalRst(int argc, char *argv[]);
+const CliCmdType CMD_ADC_CAL_RST =
+	{
+		"adccalrst",
+		2,
+		&doAdcCalRst,
+		"\tadccalrst:	Reset the calibration for one ADC channel\n",
+		"\tUsage:		ioplus <id> adccalrst <channel>\n",
+		"",
+		"\tExample:		ioplus 0 adccalrst 2 ; Reset the calibration on ADC channel #2 on Board #0 at factory default\n"};
+
+static void doAdcCalRst(int argc, char *argv[])
+{
+	int ch = 0;
+
+	int dev = 0;
+	u8 buff[4] =
+	{
+		0,
+		0,
+		0,
+		0};
+
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		exit(1);
+	}
+
+	if (argc == 4)
+	{
+		ch = atoi(argv[3]);
+		if ( (ch < CHANNEL_NR_MIN) || (ch > ADC_CH_NR_MAX))
+		{
+			printf("ADC channel out of range!\n");
+			exit(1);
+		}
+
+		buff[2] = ch;
+		buff[3] = RESET_CALIBRATION_KEY;
+
+		if (OK != i2cMem8Write(dev, I2C_MEM_CALIB_VALUE, buff, 4))
+		{
+			printf("Fail to write calibration data!\n");
+			exit(1);
+		}
+
+		getCalStat(dev);
+	}
+	else
+	{
+		printf("Invalid params number:\n %s", CMD_ADC_CAL_RST.usage1);
+		exit(1);
+	}
+}
+
+static void doDacCal(int argc, char *argv[]);
+const CliCmdType CMD_DAC_CAL =
+	{
+		"daccal",
+		2,
+		&doDacCal,
+		"\tdaccal:		Calibrate one DAC channel, the calibration must be done in 2 points at min 5V apart\n",
+		"\tUsage:		ioplus <id> daccal <channel> <value>\n",
+		"",
+		"\tExample:		ioplus 0 daccal 2 0.5; Calibrate the voltage outputs on DAC channel #2 on Board #0 at 0.5V\n"};
+
+static void doDacCal(int argc, char *argv[])
+{
+	int ch = 0;
+	float val = 0;
+	int dev = 0;
+	u8 buff[4] =
+	{
+		0,
+		0};
+	u16 raw = 0;
+
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		exit(1);
+	}
+
+	if (argc == 5)
+	{
+		ch = atoi(argv[3]);
+		if ( (ch < CHANNEL_NR_MIN) || (ch > DAC_CH_NR_MAX))
+		{
+			printf("DAC channel out of range!\n");
+			exit(1);
+		}
+
+		val = atof(argv[4]);
+		if ( (val < 0) || (val > 10))
+		{
+			printf("DAC calibration value out of range!\n");
+			exit(1);
+		}
+		raw = (u16)ceil(val * VOLT_TO_MILIVOLT);
+		memcpy(buff, &raw, 2);
+		buff[2] = ch + ADC_CH_NR_MAX;
+		buff[3] = CALIBRATION_KEY;
+
+		if (OK != i2cMem8Write(dev, I2C_MEM_CALIB_VALUE, buff, 4))
+		{
+			printf("Fail to write calibration data!\n");
+			exit(1);
+		}
+
+		getCalStat(dev);
+	}
+	else
+	{
+		printf("Invalid params number:\n %s", CMD_DAC_CAL.usage1);
+		exit(1);
+	}
+}
+
+static void doDacCalRst(int argc, char *argv[]);
+const CliCmdType CMD_DAC_CAL_RST =
+	{
+		"daccalrst",
+		2,
+		&doDacCalRst,
+		"\tdaccalrst:	Reset calibration for one DAC channel\n",
+		"\tUsage:		ioplus <id> daccalrst <channel>\n",
+		"",
+		"\tExample:		ioplus 0 daccalrst 2; Reset calibration data on DAC channel #2 on Board #0 at factory default\n"};
+
+static void doDacCalRst(int argc, char *argv[])
+{
+	int ch = 0;
+
+	int dev = 0;
+	u8 buff[4] =
+	{
+		0,
+		0,
+		0,
+		0};
+	u16 raw = 0;
+
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		exit(1);
+	}
+
+	if (argc == 4)
+	{
+		ch = atoi(argv[3]);
+		if ( (ch < CHANNEL_NR_MIN) || (ch > DAC_CH_NR_MAX))
+		{
+			printf("DAC channel out of range!\n");
+			exit(1);
+		}
+
+		memcpy(buff, &raw, 2);
+		buff[2] = ch + ADC_CH_NR_MAX;
+		buff[3] = RESET_CALIBRATION_KEY;
+
+		if (OK != i2cMem8Write(dev, I2C_MEM_CALIB_VALUE, buff, 4))
+		{
+			printf("Fail to write calibration data!\n");
+			exit(1);
+		}
+		getCalStat(dev);
+	}
+	else
+	{
+		printf("Invalid params number:\n %s", CMD_DAC_CAL_RST.usage1);
+		exit(1);
+	}
+}
+
+static void doWdtReload(int argc, char *argv[]);
+const CliCmdType CMD_WDT_RELOAD =
+	{
+		"wdtr",
+		2,
+		&doWdtReload,
+		"\twdtr:			Reload the watchdog timer and enable the watchdog if is disabled\n",
+		"\tUsage:		ioplus <id> wdtr\n",
+		"",
+		"\tExample:		ioplus 0 wdtr; Reload the watchdog timer on Board #0 with the period \n"};
+
+static void doWdtReload(int argc, char *argv[])
+{
+	int dev = 0;
+	u8 buff[2] =
+	{
+		0,
+		0};
+
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		exit(1);
+	}
+
+	if (argc == 3)
+	{
+		buff[0] = WDT_RESET_SIGNATURE;
+		if (OK != i2cMem8Write(dev, I2C_MEM_WDT_RESET_ADD, buff, 1))
+		{
+			printf("Fail to write watchdog reset key!\n");
+			exit(1);
+		}
+	}
+	else
+	{
+		printf("Invalid params number:\n %s", CMD_WDT_RELOAD.usage1);
+		exit(1);
+	}
+}
+
+static void doWdtSetPeriod(int argc, char *argv[]);
+const CliCmdType CMD_WDT_SET_PERIOD =
+	{
+		"wdtpwr",
+		2,
+		&doWdtSetPeriod,
+		"\twdtpwr:		Set the watchdog period in seconds, reload command must be issue in this interval to prevent Raspberry Pi power off\n",
+		"\tUsage:		ioplus <id> wdtpwr <val> \n",
+		"",
+		"\tExample:		ioplus 0 wdtpwr 10; Set the watchdog timer period on Board #0 at 10 seconds \n"};
+
+static void doWdtSetPeriod(int argc, char *argv[])
+{
+	int dev = 0;
+	u16 period;
+	u8 buff[2] =
+	{
+		0,
+		0};
+
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		exit(1);
+	}
+
+	if (argc == 4)
+	{
+		period = (u16)atoi(argv[3]);
+		if(0 == period)
+		{
+			printf("Invalid period!\n");
+			exit(1);
+		}
+		memcpy(buff, &period, 2);
+		if (OK != i2cMem8Write(dev, I2C_MEM_WDT_INTERVAL_SET_ADD, buff, 2))
+		{
+			printf("Fail to write watchdog period!\n");
+			exit(1);
+		}
+	}
+	else
+	{
+		printf("Invalid params number:\n %s", CMD_WDT_SET_PERIOD.usage1);
+		exit(1);
+	}
+}
+
+static void doWdtGetPeriod(int argc, char *argv[]);
+const CliCmdType CMD_WDT_GET_PERIOD =
+	{
+		"wdtprd",
+		2,
+		&doWdtGetPeriod,
+		"\twdtprd:		Get the watchdog period in seconds, reload command must be issue in this interval to prevent Raspberry Pi power off\n",
+		"\tUsage:		ioplus <id> wdtprd \n",
+		"",
+		"\tExample:		ioplus 0 wdtprd; Get the watchdog timer period on Board #0\n"};
+
+static void doWdtGetPeriod(int argc, char *argv[])
+{
+	int dev = 0;
+	u16 period;
+	u8 buff[2] =
+	{
+		0,
+		0};
+
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		exit(1);
+	}
+
+	if (argc == 3)
+	{
+		if (OK != i2cMem8Read(dev, I2C_MEM_WDT_INTERVAL_GET_ADD, buff, 2))
+		{
+			printf("Fail to read watchdog period!\n");
+			exit(1);
+		}
+		memcpy(&period, buff, 2);
+		printf("%d\n", (int)period);
+	}
+	else
+	{
+		printf("Invalid params number:\n %s", CMD_WDT_GET_PERIOD.usage1);
+		exit(1);
+	}
+}
+
+static void doWdtSetInitPeriod(int argc, char *argv[]);
+const CliCmdType CMD_WDT_SET_INIT_PERIOD =
+	{
+		"wdtipwr",
+		2,
+		&doWdtSetInitPeriod,
+		"\twdtipwr:		Set the watchdog initial period in seconds, This period is loaded after power cycle, giving Raspberry time to boot\n",
+		"\tUsage:		ioplus <id> wdtipwr <val> \n",
+		"",
+		"\tExample:		ioplus 0 wdtipwr 10; Set the watchdog timer initial period on Board #0 at 10 seconds \n"};
+
+static void doWdtSetInitPeriod(int argc, char *argv[])
+{
+	int dev = 0;
+	u16 period;
+	u8 buff[2] =
+	{
+		0,
+		0};
+
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		exit(1);
+	}
+
+	if (argc == 4)
+	{
+		period = (u16)atoi(argv[3]);
+		if(0 == period)
+		{
+			printf("Invalid period!\n");
+			exit(1);
+		}
+		memcpy(buff, &period, 2);
+		if (OK != i2cMem8Write(dev, I2C_MEM_WDT_INIT_INTERVAL_SET_ADD, buff, 2))
+		{
+			printf("Fail to write watchdog period!\n");
+			exit(1);
+		}
+	}
+	else
+	{
+		printf("Invalid params number:\n %s", CMD_WDT_SET_INIT_PERIOD.usage1);
+		exit(1);
+	}
+}
+
+static void doWdtGetInitPeriod(int argc, char *argv[]);
+const CliCmdType CMD_WDT_GET_INIT_PERIOD =
+	{
+		"wdtiprd",
+		2,
+		&doWdtGetInitPeriod,
+		"\twdtiprd:		Get the watchdog initial period in seconds. This period is loaded after power cycle, giving Raspberry time to boot\n",
+		"\tUsage:		ioplus <id> wdtiprd \n",
+		"",
+		"\tExample:		ioplus 0 wdtiprd; Get the watchdog timer initial period on Board #0\n"};
+
+static void doWdtGetInitPeriod(int argc, char *argv[])
+{
+	int dev = 0;
+	u16 period;
+	u8 buff[2] =
+	{
+		0,
+		0};
+
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		exit(1);
+	}
+
+	if (argc == 3)
+	{
+		if (OK != i2cMem8Read(dev, I2C_MEM_WDT_INIT_INTERVAL_GET_ADD, buff, 2))
+		{
+			printf("Fail to read watchdog period!\n");
+			exit(1);
+		}
+		memcpy(&period, buff, 2);
+		printf("%d\n", (int)period);
+	}
+	else
+	{
+		printf("Invalid params number:\n %s", CMD_WDT_GET_INIT_PERIOD.usage1);
+		exit(1);
+	}
+}
+
+static void doWdtSetOffPeriod(int argc, char *argv[]);
+const CliCmdType CMD_WDT_SET_OFF_PERIOD =
+	{
+		"wdtopwr",
+		2,
+		&doWdtSetOffPeriod,
+		"\twdtopwr:		Set the watchdog off period in seconds (max 48 days), This is the time that watchdog mantain Raspberry turned off \n",
+		"\tUsage:		ioplus <id> wdtopwr <val> \n",
+		"",
+		"\tExample:		ioplus 0 wdtopwr 10; Set the watchdog off interval on Board #0 at 10 seconds \n"};
+
+static void doWdtSetOffPeriod(int argc, char *argv[])
+{
+	int dev = 0;
+	u32 period;
+	u8 buff[4] =
+	{
+		0,
+		0, 0, 0};
+
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		exit(1);
+	}
+
+	if (argc == 4)
+	{
+		period = (u32)atoi(argv[3]);
+		if((0 == period)||(period > WDT_MAX_OFF_INTERVAL_S))
+		{
+			printf("Invalid period!\n");
+			exit(1);
+		}
+		memcpy(buff, &period, 4);
+		if (OK != i2cMem8Write(dev, I2C_MEM_WDT_POWER_OFF_INTERVAL_SET_ADD, buff, 4))
+		{
+			printf("Fail to write watchdog period!\n");
+			exit(1);
+		}
+	}
+	else
+	{
+		printf("Invalid params number:\n %s", CMD_WDT_SET_OFF_PERIOD.usage1);
+		exit(1);
+	}
+}
+
+static void doWdtGetOffPeriod(int argc, char *argv[]);
+const CliCmdType CMD_WDT_GET_OFF_PERIOD =
+	{
+		"wdtoprd",
+		2,
+		&doWdtGetOffPeriod,
+		"\twdtoprd:		Get the watchdog off period in seconds (max 48 days), This is the time that watchdog mantain Raspberry turned off \n",
+		"\tUsage:		ioplus <id> wdtoprd \n",
+		"",
+		"\tExample:		ioplus 0 wdtoprd; Get the watchdog off period on Board #0\n"};
+
+static void doWdtGetOffPeriod(int argc, char *argv[])
+{
+	int dev = 0;
+	u32 period;
+	u8 buff[4] =
+	{
+		0,
+		0,0,0};
+
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		exit(1);
+	}
+
+	if (argc == 3)
+	{
+		if (OK != i2cMem8Read(dev, I2C_MEM_WDT_POWER_OFF_INTERVAL_GET_ADD, buff, 4))
+		{
+			printf("Fail to read watchdog period!\n");
+			exit(1);
+		}
+		memcpy(&period, buff, 4);
+		printf("%d\n", (int)period);
+	}
+	else
+	{
+		printf("Invalid params number:\n %s", CMD_WDT_GET_OFF_PERIOD.usage1);
+		exit(1);
+	}
+}
+
+const CliCmdType* gCmdArray[] =
+{
+	&CMD_VERSION,
+	&CMD_HELP,
+	&CMD_WAR,
+	&CMD_PINOUT,
+	&CMD_LIST,
+	&CMD_BOARD,
+#ifdef HW_DEBUG
+	&CMD_ERR,
+#endif
+	&CMD_RELAY_WRITE,
+	&CMD_RELAY_READ,
+	&CMD_TEST,
+	&CMD_GPIO_WRITE,
+	&CMD_GPIO_READ,
+	&CMD_GPIO_DIR_WRITE,
+	&CMD_GPIO_DIR_READ,
+	&CMD_OPTO_READ,
+	&CMD_OD_READ,
+	&CMD_OD_WRITE,
+	&CMD_DAC_READ,
+	&CMD_DAC_WRITE,
+	&CMD_ADC_READ,
+	&CMD_ADC_CAL,
+	&CMD_ADC_CAL_RST,
+	&CMD_DAC_CAL,
+	&CMD_DAC_CAL_RST,
+	&CMD_WDT_RELOAD,
+	&CMD_WDT_SET_PERIOD,
+	&CMD_WDT_GET_PERIOD,
+	&CMD_WDT_SET_INIT_PERIOD,
+	&CMD_WDT_GET_INIT_PERIOD,
+	&CMD_WDT_SET_OFF_PERIOD,
+	&CMD_WDT_GET_OFF_PERIOD,
+	NULL}; //null terminated array of cli structure pointers
 
 int main(int argc, char *argv[])
 {
 	int i = 0;
 
-	cliInit();
-
 	if (argc == 1)
 	{
 		usage();
-		return 1;
+		return -1;
 	}
-	for (i = 0; i < CMD_ARRAY_SIZE; i++)
+	while (NULL != gCmdArray[i])
 	{
-		if ( (gCmdArray[i].name != NULL) && (gCmdArray[i].namePos < argc))
+		if ( (gCmdArray[i]->name != NULL) && (gCmdArray[i]->namePos < argc))
 		{
-			if (strcasecmp(argv[gCmdArray[i].namePos], gCmdArray[i].name) == 0)
+			if (strcasecmp(argv[gCmdArray[i]->namePos], gCmdArray[i]->name) == 0)
 			{
-				gCmdArray[i].pFunc(argc, argv);
+				gCmdArray[i]->pFunc(argc, argv);
 				return 0;
 			}
 		}
+		i++;
 	}
 	printf("Invalid command option\n");
 	usage();
 
-	return 0;
+	return -1;
 }

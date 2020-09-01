@@ -8,7 +8,7 @@ This is the [Sequent Microsystems](https://www.sequentmicrosystems.com) IO-Plus 
 ~$ git clone https://github.com/SequentMicrosystems/ioplus-rpi.git
 ~$ cd ioplus-rpi/update/
 ~/ioplus-rpi/update$ ./update 0
-``` 
+```
 
 If you clone the repository already, skip the first step. 
 The command will download the newest firmware version from our server and write it  to the board.

@@ -20,7 +20,7 @@
 
 #define VERSION_BASE	(int)1
 #define VERSION_MAJOR	(int)2
-#define VERSION_MINOR	(int)0
+#define VERSION_MINOR	(int)1
 
 #define UNUSED(X) (void)X      /* To avoid gcc/g++ warnings */
 
@@ -2132,7 +2132,7 @@ static void doWdtSetPeriod(int argc, char *argv[])
 	if (argc == 4)
 	{
 		period = (u16)atoi(argv[3]);
-		if(0 == period)
+		if (0 == period)
 		{
 			printf("Invalid period!\n");
 			exit(1);
@@ -2223,7 +2223,7 @@ static void doWdtSetInitPeriod(int argc, char *argv[])
 	if (argc == 4)
 	{
 		period = (u16)atoi(argv[3]);
-		if(0 == period)
+		if (0 == period)
 		{
 			printf("Invalid period!\n");
 			exit(1);
@@ -2303,7 +2303,9 @@ static void doWdtSetOffPeriod(int argc, char *argv[])
 	u8 buff[4] =
 	{
 		0,
-		0, 0, 0};
+		0,
+		0,
+		0};
 
 	dev = doBoardInit(atoi(argv[1]));
 	if (dev <= 0)
@@ -2314,13 +2316,14 @@ static void doWdtSetOffPeriod(int argc, char *argv[])
 	if (argc == 4)
 	{
 		period = (u32)atoi(argv[3]);
-		if((0 == period)||(period > WDT_MAX_OFF_INTERVAL_S))
+		if ( (0 == period) || (period > WDT_MAX_OFF_INTERVAL_S))
 		{
 			printf("Invalid period!\n");
 			exit(1);
 		}
 		memcpy(buff, &period, 4);
-		if (OK != i2cMem8Write(dev, I2C_MEM_WDT_POWER_OFF_INTERVAL_SET_ADD, buff, 4))
+		if (OK
+			!= i2cMem8Write(dev, I2C_MEM_WDT_POWER_OFF_INTERVAL_SET_ADD, buff, 4))
 		{
 			printf("Fail to write watchdog period!\n");
 			exit(1);
@@ -2351,7 +2354,9 @@ static void doWdtGetOffPeriod(int argc, char *argv[])
 	u8 buff[4] =
 	{
 		0,
-		0,0,0};
+		0,
+		0,
+		0};
 
 	dev = doBoardInit(atoi(argv[1]));
 	if (dev <= 0)
@@ -2361,7 +2366,8 @@ static void doWdtGetOffPeriod(int argc, char *argv[])
 
 	if (argc == 3)
 	{
-		if (OK != i2cMem8Read(dev, I2C_MEM_WDT_POWER_OFF_INTERVAL_GET_ADD, buff, 4))
+		if (OK
+			!= i2cMem8Read(dev, I2C_MEM_WDT_POWER_OFF_INTERVAL_GET_ADD, buff, 4))
 		{
 			printf("Fail to read watchdog period!\n");
 			exit(1);
@@ -2372,6 +2378,267 @@ static void doWdtGetOffPeriod(int argc, char *argv[])
 	else
 	{
 		printf("Invalid params number:\n %s", CMD_WDT_GET_OFF_PERIOD.usage1);
+		exit(1);
+	}
+}
+
+static void doLoopbackTest(int argc, char *argv[]);
+const CliCmdType CMD_IO_TEST =
+{
+	"iotst",
+	2,
+	&doLoopbackTest,
+	"\tiotst:		Test the ioplus with loopback card inserted \n",
+	"\tUsage:		ioplus <id> iotst\n",
+	"",
+	"\tExample:		ioplus 0 iotst; Run the tests \n"};
+
+static void doLoopbackTest(int argc, char *argv[])
+{
+	int dev = 0;
+	u8 i = 0;
+	OutStateEnumType state;
+	int pass = 0;
+	int total = 0;
+	float val = 0;
+	const u8 t1OptoCh[4] =
+	{
+		2,
+		1,
+		4,
+		3};
+	const u8 t2OptoCh[4] =
+	{
+		8,
+		7,
+		6,
+		5};
+	const u8 adcCh1[4] =
+	{
+		2,
+		5,
+		1,
+		7};
+	const u8 adcCh2[4] =
+	{
+		4,
+		6,
+		3,
+		8};
+
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		exit(1);
+	}
+
+	if (argc == 3)
+	{
+		//GPIO -> OPTO
+//Opto ON		
+		for (i = 0; i < 4; i++)
+		{
+			if (OK != gpioChDirSet(dev, i + 1, 0))
+			{
+				printf("Fail to set GPIO direction!\n");
+				exit(1);
+			}
+			if (OK != gpioChSet(dev, i + 1, 0))
+			{
+				printf("Fail to set GPIO !\n");
+				exit(1);
+			}
+			busyWait(50);
+			if (OK != optoChGet(dev, t1OptoCh[i], &state))
+			{
+				printf("Fail to read opto!\n");
+				exit(1);
+			}
+			total++;
+			if (state == 1)
+			{
+				printf("Gpio %d to Opto %d Turn ON  PASS\n", (int)i + 1,
+					(int)t1OptoCh[i]);
+				pass++;
+			}
+			else
+			{
+				printf("Gpio %d to Opto %d Turn ON  FAIL!\n", (int)i + 1,
+					(int)t1OptoCh[i]);
+			}
+//Opto OFF
+			if (OK != gpioChDirSet(dev, i + 1, 1))
+			{
+				printf("Fail to set GPIO direction!\n");
+				exit(1);
+			}
+
+			busyWait(50);
+			if (OK != optoChGet(dev, t1OptoCh[i], &state))
+			{
+				printf("Fail to read opto!\n");
+				exit(1);
+			}
+			total++;
+			if (state == 0)
+			{
+				printf("Gpio %d to Opto %d Turn OFF  PASS\n", (int)i + 1,
+					(int)t1OptoCh[i]);
+				pass++;
+			}
+			else
+			{
+				printf("Gpio %d to Opto %d Turn OFF  FAIL!\n", (int)i + 1,
+					(int)t1OptoCh[i]);
+			}
+		}
+
+		//Open drain -> OPTO
+//Opto ON		
+		for (i = 0; i < 4; i++)
+		{
+			if (OK != odSet(dev, i + 1, 100))
+			{
+				printf("Fail to set Open drains output!\n");
+				exit(1);
+			}
+			busyWait(250);
+			if (OK != optoChGet(dev, t2OptoCh[i], &state))
+			{
+				printf("Fail to read opto!\n");
+				exit(1);
+			}
+			total++;
+			if (state == 1)
+			{
+				printf("OD %d to Opto %d Turn ON  PASS\n", (int)i + 1,
+					(int)t1OptoCh[i]);
+				pass++;
+			}
+			else
+			{
+				printf("OD %d to Opto %d Turn ON  FAIL!\n", (int)i + 1,
+					(int)t1OptoCh[i]);
+			}
+//Opto OFF
+			if (OK != odSet(dev, i + 1, 0))
+			{
+				printf("Fail to set Open drains output!\n");
+				exit(1);
+			}
+			busyWait(250);
+			if (OK != optoChGet(dev, t2OptoCh[i], &state))
+			{
+				printf("Fail to read opto!\n");
+				exit(1);
+			}
+			total++;
+			if (state == 0)
+			{
+				printf("OD %d to Opto %d Turn OFF  PASS\n", (int)i + 1,
+					(int)t1OptoCh[i]);
+				pass++;
+			}
+			else
+			{
+				printf("OD %d to Opto %d Turn OFF  FAIL!\n", (int)i + 1,
+					(int)t1OptoCh[i]);
+			}
+		}
+		//DAC -> ADC
+//DAC 2V		
+		for (i = 0; i < 4; i++)
+		{
+
+			if (OK != dacSet(dev, i + 1, 2))
+			{
+				printf("Fail to set DAC output!\n");
+				exit(1);
+			}
+			busyWait(250);
+			if (OK != adcGet(dev, adcCh1[i], &val))
+			{
+				printf("Fail to read adc\n");
+				exit(1);
+			}
+			total++;
+			if ( (val < 2.1) && (val > 1.9))
+			{
+				printf("DAC %d to ADC %d @2V  PASS\n", (int)i + 1, (int)adcCh1[i]);
+				pass++;
+			}
+			else
+			{
+				printf("DAC %d to ADC %d @2V  FAIL!\n", (int)i + 1, (int)adcCh1[i]);
+			}
+
+			if (OK != adcGet(dev, adcCh2[i], &val))
+			{
+				printf("Fail to read adc\n");
+				exit(1);
+			}
+			total++;
+			if ( (val < 2.1) && (val > 1.9))
+			{
+				printf("DAC %d to ADC %d @2V  PASS\n", (int)i + 1, (int)adcCh2[i]);
+				pass++;
+			}
+			else
+			{
+				printf("DAC %d to ADC %d @2V  FAIL!\n", (int)i + 1, (int)adcCh2[i]);
+			}
+
+			if (OK != dacSet(dev, i + 1, 0))
+			{
+				printf("Fail to set DAC output!\n");
+				exit(1);
+			}
+			busyWait(250);
+			if (OK != adcGet(dev, adcCh1[i], &val))
+			{
+				printf("Fail to read adc\n");
+				exit(1);
+			}
+			total++;
+			if ( (val < 0.1) && (val > -0.1))
+			{
+				printf("DAC %d to ADC %d @0V  PASS\n", (int)i + 1, (int)adcCh1[i]);
+				pass++;
+			}
+			else
+			{
+				printf("DAC %d to ADC %d @0V  FAIL!\n", (int)i + 1, (int)adcCh1[i]);
+			}
+
+			if (OK != adcGet(dev, adcCh2[i], &val))
+			{
+				printf("Fail to read adc\n");
+				exit(1);
+			}
+			total++;
+			if ( (val < 0.1) && (val > -0.1))
+			{
+				printf("DAC %d to ADC %d @0V  PASS\n", (int)i + 1, (int)adcCh2[i]);
+				pass++;
+			}
+			else
+			{
+				printf("DAC %d to ADC %d @0V  FAIL!\n", (int)i + 1, (int)adcCh2[i]);
+			}
+
+		}
+		if (pass == total)
+		{
+			printf("\n === All tests PASS === \n");
+		}
+		else
+		{
+			printf("\n === Tests FAIL/from -> %d/%d !=== \n", total - pass, total);
+		}
+	}
+	else
+	{
+		printf("Invalid params number:\n %s", CMD_IO_TEST.usage1);
 		exit(1);
 	}
 }
@@ -2411,6 +2678,7 @@ const CliCmdType* gCmdArray[] =
 	&CMD_WDT_GET_INIT_PERIOD,
 	&CMD_WDT_SET_OFF_PERIOD,
 	&CMD_WDT_GET_OFF_PERIOD,
+	&CMD_IO_TEST,
 	NULL}; //null terminated array of cli structure pointers
 
 int main(int argc, char *argv[])

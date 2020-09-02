@@ -7,7 +7,6 @@ DEVICE_ADDRESS = 0x28     #7 bit address (will be left shifted to add the read w
 
 	
 def getAdcV(stack, channel):
-	bus = smbus.SMBus(1)
 	data = 0
 	if stack < 0 or stack > 7:
 		raise ValueError('Invalid stack level')
@@ -17,15 +16,16 @@ def getAdcV(stack, channel):
 		raise ValueError('Invalid channel number')
 		return -1
 	ADC_VAL_MV_ADD = 24
+	bus = smbus.SMBus(1)
 	try:
 		data = bus.read_word_data(DEVICE_ADDRESS+stack, ADC_VAL_MV_ADD + 2 * (channel - 1));
 		val = data/1000.0;
 	except Exception as e:
 		val = -1  
+	bus.close()
 	return val   
 		
 def getAdcRaw(stack, channel):
-  	bus = smbus.SMBus(1)
   	data = 0
 	if stack < 0 or stack > 7:
 		raise ValueError('Invalid stack level')
@@ -36,15 +36,17 @@ def getAdcRaw(stack, channel):
 		return -1
     
   	ADC_VAL_RAW_ADD = 8
+  	bus = smbus.SMBus(1)
   	try:
 		data = bus.read_word_data(DEVICE_ADDRESS+stack, ADC_VAL_RAW_ADD + 2 * (channel - 1));
 		val = data;
 	except Exception as e:
-		val = -1  
+		val = -1
+	bus.close()  
 	return val  
 
 def setDacV(stack, channel, value):	
- 	bus = smbus.SMBus(1)
+ 	
  	if stack < 0 or stack > 7:
 		raise ValueError('Invalid stack level')
 		return -1
@@ -60,13 +62,16 @@ def setDacV(stack, channel, value):
 		value = 10;
 	
 	raw = int(value * 1000)			
-		
+	bus = smbus.SMBus(1)	
 	DAC_VAL_MV_ADD = 40
+	
 	try:
 		bus.write_word_data(DEVICE_ADDRESS+stack, DAC_VAL_MV_ADD + 2 * (channel - 1), 	raw)
 	except Exception as e:
 		print(e)
+		bus.close()
 		return -1 
+	bus.close()
 	return 1  	
 	
 def setOdPwm(stack, channel, value):	
@@ -89,7 +94,9 @@ def setOdPwm(stack, channel, value):
 	try:
 		bus.write_word_data(DEVICE_ADDRESS+stack, OD_PWM_VAL_RAW_ADD + 2 * (channel - 1), 	value)
 	except Exception as e:
+		bus.close()
 		return -1 
+	bus.close()
 	return 1	
 	
 def setRelayCh(stack, channel, value):
@@ -108,12 +115,15 @@ def setRelayCh(stack, channel, value):
 		try:
 			bus.write_byte_data(DEVICE_ADDRESS+stack, RELAY_CLR_ADD, channel)
 		except Exception as e:
+			bus.close()
 			return -1 
 	else:
 		try:
 			bus.write_byte_data(DEVICE_ADDRESS+stack, RELAY_SET_ADD, channel)
 		except Exception as e:
+			bus.close()
 			return -1 
+	bus.close()
 	return 1
 	
 def setRelays(stack, value):
@@ -130,7 +140,9 @@ def setRelays(stack, value):
 	try:
 		bus.write_byte_data(DEVICE_ADDRESS+stack, RELAY_VAL_ADD, value)
 	except Exception as e:
+		bus.close()
 		return -1
+	bus.close()
 
 def getOptoCh(stack, channel):
  	if stack < 0 or stack > 7:
@@ -146,8 +158,9 @@ def getOptoCh(stack, channel):
 	try:
 		val = bus.read_byte_data(DEVICE_ADDRESS+stack, OPTO_IN_ADD)		
 	except Exception as e:
+		bus.close()
 		return -1
-	
+	bus.close()
 	if val & (1 << channel) :
 		return 1
 	else:
@@ -163,7 +176,9 @@ def getOpto(stack):
 	try:
 		val = bus.read_byte_data(DEVICE_ADDRESS+stack, OPTO_IN_ADD)		
 	except Exception as e:
+		bus.close()
 		return -1
+	bus.close()
 	return val	
 	
 	
@@ -180,7 +195,9 @@ def setGpioDir(stack, dir):
 	try:
 		bus.write_byte_data(DEVICE_ADDRESS+stack, GPIO_DIR_ADD, dir)
 	except Exception as e:
+		bus.close()
 		return -1
+	bus.close()
 	return 1
 	
 def getGpio(stack):
@@ -192,7 +209,9 @@ def getGpio(stack):
 	try:
 		val = bus.read_byte_data(DEVICE_ADDRESS+stack, GPIO_VAL_ADD)		
 	except Exception as e:
+		bus.close()
 		return -1
+	bus.close()
 	return val	
 	
 def setGpioPin(stack, pin, val):
@@ -213,6 +232,8 @@ def setGpioPin(stack, pin, val):
 		else:
 			bus.write_byte_data(DEVICE_ADDRESS+stack, GPIO_SET_ADD, pin)
 	except Exception as e:
+		bus.close()
 		return -1
+	bus.close()
 	return 1		
 								

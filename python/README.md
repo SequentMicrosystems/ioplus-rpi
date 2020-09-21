@@ -44,7 +44,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>>
 ```
 
-## [Functions](ioplus/README.md)
+## [libioplus documentation](ioplus/README.md)
 
 
 

@@ -32,4 +32,9 @@ If you clone the repository any update can be made with the following commands:
 ~$ cd ioplus-rpi/  
 ~/ioplus-rpi$ git pull
 ~/ioplus-rpi$ sudo make install
-```  
+``` 
+
+## [Firmware Update](update/README.md)
+
+## [Python Library](python/README.md)
+

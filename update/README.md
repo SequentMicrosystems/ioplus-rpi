@@ -1,6 +1,6 @@
 # update
 
-This is the [Sequent Microsystems](https://www.sequentmicrosystems.com) IO-Plus board  firmware update tool.
+This is the Home Automation Card firmware update tool.
 
 ## Usage
 

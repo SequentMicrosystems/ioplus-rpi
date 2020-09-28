@@ -2,13 +2,13 @@
 
 # ioplus-rpi
 
-This is the command to control [IO_PLUS Stackable Card for Raspberry Pi](https://sequentmicrosystems.com/index.php?route=product/product&product_id=42)
+This is Command Line, Python, and Node-Red for [Home Automation Card](https://sequentmicrosystems.com/index.php?route=product/product&product_id=42)
 
 ![IO-PLUS](res/ioplus.jpg)
 
 ## Setup
 
-Don't forget to enable I2C communication:
+Enable Raspberry Pi I2C communication:
 ```bash
 ~$ sudo raspi-config
 ```
@@ -38,3 +38,4 @@ If you clone the repository any update can be made with the following commands:
 
 ## [Python Library](python/README.md)
 
+## [Node-Red](node-red/README.md)

@@ -2,7 +2,7 @@
 
 # ioplus-rpi
 
-This is Command Line, Python, and Node-Red for [Home Automation Card](https://sequentmicrosystems.com/index.php?route=product/product&product_id=42)
+Command Line, Python, and Node-Red for [Home Automation Card](https://sequentmicrosystems.com/index.php?route=product/product&product_id=42)
 
 ![IO-PLUS](res/ioplus.jpg)
 

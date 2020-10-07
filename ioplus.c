@@ -1,7 +1,7 @@
 /*
- * rtd.c:
+ * ioplus.c:
  *	Command-line interface to the Raspberry
- *	Pi's MEGAS-RTD board.
+ *	Pi's IOPLUS card.
  *	Copyright (c) 2016-2020 Sequent Microsystem
  *	<http://www.sequentmicrosystem.com>
  ***********************************************************************
@@ -20,7 +20,7 @@
 
 #define VERSION_BASE	(int)1
 #define VERSION_MAJOR	(int)2
-#define VERSION_MINOR	(int)1
+#define VERSION_MINOR	(int)3
 
 #define UNUSED(X) (void)X      /* To avoid gcc/g++ warnings */
 
@@ -2512,13 +2512,13 @@ static void doLoopbackTest(int argc, char *argv[])
 			if (state == 1)
 			{
 				printf("OD %d to Opto %d Turn ON  PASS\n", (int)i + 1,
-					(int)t1OptoCh[i]);
+					(int)t2OptoCh[i]);
 				pass++;
 			}
 			else
 			{
 				printf("OD %d to Opto %d Turn ON  FAIL!\n", (int)i + 1,
-					(int)t1OptoCh[i]);
+					(int)t2OptoCh[i]);
 			}
 //Opto OFF
 			if (OK != odSet(dev, i + 1, 0))
@@ -2536,13 +2536,13 @@ static void doLoopbackTest(int argc, char *argv[])
 			if (state == 0)
 			{
 				printf("OD %d to Opto %d Turn OFF  PASS\n", (int)i + 1,
-					(int)t1OptoCh[i]);
+					(int)t2OptoCh[i]);
 				pass++;
 			}
 			else
 			{
 				printf("OD %d to Opto %d Turn OFF  FAIL!\n", (int)i + 1,
-					(int)t1OptoCh[i]);
+					(int)t2OptoCh[i]);
 			}
 		}
 		//DAC -> ADC

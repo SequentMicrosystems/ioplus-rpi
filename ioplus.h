@@ -29,15 +29,19 @@ enum
 	I2C_MEM_GPIO_DIR_ADD,
 
 	I2C_MEM_ADC_VAL_RAW_ADD,
-	I2C_MEM_ADC_VAL_MV_ADD = I2C_MEM_ADC_VAL_RAW_ADD + ADC_CH_NO * ADC_RAW_VAL_SIZE,
-	I2C_MEM_DAC_VAL_MV_ADD = I2C_MEM_ADC_VAL_MV_ADD + ADC_CH_NO * ADC_RAW_VAL_SIZE,
-	I2C_MEM_OD_PWM_VAL_RAW_ADD = I2C_MEM_DAC_VAL_MV_ADD + DAC_CH_NO * DAC_MV_VAL_SIZE,
-	I2C_MEM_OPTO_IT_RISING_ADD = I2C_MEM_OD_PWM_VAL_RAW_ADD + DAC_CH_NO * DAC_MV_VAL_SIZE,
+	I2C_MEM_ADC_VAL_MV_ADD = I2C_MEM_ADC_VAL_RAW_ADD
+		+ ADC_CH_NO * ADC_RAW_VAL_SIZE,
+	I2C_MEM_DAC_VAL_MV_ADD = I2C_MEM_ADC_VAL_MV_ADD
+		+ ADC_CH_NO * ADC_RAW_VAL_SIZE,
+	I2C_MEM_OD_PWM_VAL_RAW_ADD = I2C_MEM_DAC_VAL_MV_ADD
+		+ DAC_CH_NO * DAC_MV_VAL_SIZE,
+	I2C_MEM_OPTO_IT_RISING_ADD = I2C_MEM_OD_PWM_VAL_RAW_ADD
+		+ DAC_CH_NO * DAC_MV_VAL_SIZE,
 	I2C_MEM_OPTO_IT_FALLING_ADD,
 	I2C_MEM_GPIO_EXT_IT_RISING_ADD,
 	I2C_MEM_GPIO_EXT_IT_FALLING_ADD,
-	I2C_MEM_OPTO_IT_FLAGS_ADD,
-	I2C_MEM_GPIO_IT_FLAGS_ADD,
+	I2C_MEM_OPTO_CNT_RST_ADD,
+	I2C_MEM_GPIO_CNT_RST_ADD,
 
 	I2C_MEM_DIAG_TEMPERATURE_ADD,
 
@@ -45,10 +49,15 @@ enum
 	I2C_MEM_DIAG_3V3_MV_ADD1,
 
 	I2C_MEM_CALIB_VALUE,
-	I2C_MEM_CALIB_CHANNEL = I2C_MEM_CALIB_VALUE + 2,//ADC channels [1,8]; DAC channels [9, 12]
+	I2C_MEM_CALIB_CHANNEL = I2C_MEM_CALIB_VALUE + 2, //ADC channels [1,8]; DAC channels [9, 12]
 	I2C_MEM_CALIB_KEY, //set calib point 0xaa; reset calibration on the channel 0x55
 	I2C_MEM_CALIB_STATUS,
-	
+
+	I2C_MEM_OPTO_ENC_ENABLE_ADD,
+	I2C_MEM_GPIO_ENC_ENABLE_ADD,
+	I2C_MEM_OPTO_ENC_CNT_RST_ADD,
+	I2C_MEM_GPIO_ENC_CNT_RST_ADD,
+
 	I2C_MEM_WDT_RESET_ADD = 100,
 	I2C_MEM_WDT_INTERVAL_SET_ADD,
 	I2C_MEM_WDT_INTERVAL_GET_ADD = I2C_MEM_WDT_INTERVAL_SET_ADD + 2,
@@ -58,7 +67,8 @@ enum
 	I2C_MEM_WDT_CLEAR_RESET_COUNT_ADD = I2C_MEM_WDT_RESET_COUNT_ADD + 2,
 
 	I2C_MEM_WDT_POWER_OFF_INTERVAL_SET_ADD,
-	I2C_MEM_WDT_POWER_OFF_INTERVAL_GET_ADD = I2C_MEM_WDT_POWER_OFF_INTERVAL_SET_ADD + 4,
+	I2C_MEM_WDT_POWER_OFF_INTERVAL_GET_ADD = I2C_MEM_WDT_POWER_OFF_INTERVAL_SET_ADD
+		+ 4,
 
 	I2C_MEM_REVISION_HW_MAJOR_ADD = 0x78,
 	I2C_MEM_REVISION_HW_MINOR_ADD,
@@ -68,12 +78,19 @@ enum
 	I2C_DBG_FIFO_ADD = I2C_DBG_FIFO_SIZE + 2,
 	I2C_DBG_CMD,
 	I2C_MEM_OPTO_EDGE_COUNT_ADD,
-	I2C_MEM_OPTO_EDGE_COUNT_END_ADD = I2C_MEM_OPTO_EDGE_COUNT_ADD + COUNTER_SIZE * OPTO_CH_NO,//!gap
+	I2C_MEM_OPTO_EDGE_COUNT_END_ADD = I2C_MEM_OPTO_EDGE_COUNT_ADD
+		+ COUNTER_SIZE * OPTO_CH_NO, //!gap
+
 	I2C_MEM_ADD_RESERVED = 0xaa,
 	I2C_MEM_GPIO_EDGE_COUNT_ADD,
-	SLAVE_BUFF_SIZE = I2C_MEM_GPIO_EDGE_COUNT_ADD + COUNTER_SIZE * GPIO_CH_NO,
-}I2C_MEM_ADD;
-
+	I2C_MEM_OPTO_ENC_COUNT_ADD = I2C_MEM_GPIO_EDGE_COUNT_ADD
+		+ COUNTER_SIZE * GPIO_CH_NO,
+	I2C_MEM_GPIO_ENC_COUNT_ADD = I2C_MEM_OPTO_ENC_COUNT_ADD
+		+ COUNTER_SIZE * OPTO_CH_NO / 2,
+	I2C_MEM_GPIO_ENC_COUNT_END_ADD = I2C_MEM_GPIO_ENC_COUNT_ADD
+		+ COUNTER_SIZE * GPIO_CH_NO / 2,
+	SLAVE_BUFF_SIZE,
+} I2C_MEM_ADD;
 
 #define CHANNEL_NR_MIN		1
 #define RELAY_CH_NR_MAX		8
@@ -88,12 +105,16 @@ enum
 #define ERROR	-1
 #define OK		0
 #define FAIL	-1
+#define ARG_ERR -2
+#define ARG_CNT_ERR -3
 
 #define SLAVE_OWN_ADDRESS_BASE 0x28
 
 typedef uint8_t u8;
 typedef uint16_t u16;
+typedef int16_t s16;
 typedef uint32_t u32;
+typedef int32_t s32;
 
 typedef enum
 {
@@ -102,17 +123,29 @@ typedef enum
 	STATE_COUNT
 } OutStateEnumType;
 
-typedef struct
-{
- const char* name;
- const int namePos;
- void(*pFunc)(int, char**);
- const char* help;
- const char* usage1;
- const char* usage2;
- const char* example;
-}CliCmdType;
+int doBoardInit(int stack);
 
+int gpioChSet(int dev, u8 channel, OutStateEnumType state);
+int gpioChGet(int dev, u8 channel, OutStateEnumType *state);
+int gpioChDirSet(int dev, u8 channel, u8 state);
+int doGpioRead(int argc, char *argv[]);
+int doGpioDirWrite(int argc, char *argv[]);
+int doGpioDirRead(int argc, char *argv[]);
+int doGpioEdgeWrite(int argc, char *argv[]);
+int doGpioEdgeRead(int argc, char *argv[]);
+int doGpioCntRead(int argc, char *argv[]);
+int doGpioCntRst(int argc, char *argv[]);
+int doGpioWrite(int argc, char *argv[]);
 
-const CliCmdType* gCmdArray[];
+int optoChGet(int dev, u8 channel, OutStateEnumType *state);
+int doOptoRead(int argc, char *argv[]);
+int doOptoEdgeWrite(int argc, char *argv[]);
+int doOptoEdgeRead(int argc, char *argv[]);
+int doOptoCntRead(int argc, char *argv[]);
+int doOptoCntReset(int argc, char *argv[]);
+int doOptoEncoderWrite(int argc, char *argv[]);
+int doOptoEncoderRead(int argc, char *argv[]);
+int doOptoEncoderCntRead(int argc, char *argv[]);
+int doOptoEncoderCntReset(int argc, char *argv[]);
+
 #endif //IOPLUS_H_

@@ -17,6 +17,7 @@
 #include "ioplus.h"
 #include "comm.h"
 #include "thread.h"
+#include "cli.h"
 
 #define VERSION_BASE	(int)1
 #define VERSION_MAJOR	(int)2
@@ -135,7 +136,7 @@ int boardCheck(int stack)
 	}
 	return OK;
 }
-static void doHelp(int argc, char *argv[]);
+int doHelp(int argc, char *argv[]);
 const CliCmdType CMD_HELP =
 {
 	"-h",
@@ -146,7 +147,7 @@ const CliCmdType CMD_HELP =
 	"\tUsage:		ioplus -h <param>   Display help for <param> command option\n",
 	"\tExample:		ioplus -h rread    Display help for \"rread\" command option\n"};
 
-static void doHelp(int argc, char *argv[])
+int doHelp(int argc, char *argv[])
 {
 	int i = 0;
 	if (argc == 3)
@@ -191,9 +192,10 @@ static void doHelp(int argc, char *argv[])
 			i++;
 		}
 	}
+	return OK;
 }
 
-static void doVersion(int argc, char *argv[]);
+int doVersion(int argc, char *argv[]);
 const CliCmdType CMD_VERSION =
 {
 	"-v",
@@ -204,7 +206,7 @@ const CliCmdType CMD_VERSION =
 	"",
 	"\tExample:		ioplus -v  Display the version number\n"};
 
-static void doVersion(int argc, char *argv[])
+int doVersion(int argc, char *argv[])
 {
 	UNUSED(argc);
 	UNUSED(argv);
@@ -212,10 +214,10 @@ static void doVersion(int argc, char *argv[])
 	VERSION_BASE, VERSION_MAJOR, VERSION_MINOR);
 	printf("\nThis is free software with ABSOLUTELY NO WARRANTY.\n");
 	printf("For details type: ioplus -warranty\n");
-
+	return OK;
 }
 
-static void doWarranty(int argc, char* argv[]);
+int doWarranty(int argc, char *argv[]);
 const CliCmdType CMD_WAR =
 {
 	"-warranty",
@@ -226,12 +228,13 @@ const CliCmdType CMD_WAR =
 	"",
 	"\tExample:		ioplus -warranty  Display the warranty text\n"};
 
-static void doWarranty(int argc UNU, char* argv[] UNU)
+int doWarranty(int argc UNU, char *argv[] UNU)
 {
 	printf("%s\n", warranty);
+	return OK;
 }
 
-static void doDispPinout(int argc, char* argv[]);
+int doDispPinout(int argc, char *argv[]);
 const CliCmdType CMD_PINOUT =
 {
 	"-pinout",
@@ -242,12 +245,13 @@ const CliCmdType CMD_PINOUT =
 	"",
 	"\tExample:		ioplus -pinout  Display the board io connector pinout\n"};
 
-static void doDispPinout(int argc UNU, char* argv[] UNU)
+int doDispPinout(int argc UNU, char *argv[] UNU)
 {
 	printf("%s\n", cn);
+	return OK;
 }
 
-static void doList(int argc, char *argv[]);
+int doList(int argc, char *argv[]);
 const CliCmdType CMD_LIST =
 	{
 		"-list",
@@ -258,7 +262,7 @@ const CliCmdType CMD_LIST =
 		"",
 		"\tExample:		ioplus -list display: 1,0 \n"};
 
-static void doList(int argc, char *argv[])
+int doList(int argc, char *argv[])
 {
 	int ids[8];
 	int i;
@@ -286,9 +290,10 @@ static void doList(int argc, char *argv[])
 		printf(" %d", ids[cnt]);
 	}
 	printf("\n");
+	return OK;
 }
 
-static void doBoard(int argc, char *argv[]);
+int doBoard(int argc, char *argv[]);
 const CliCmdType CMD_BOARD =
 {
 	"board",
@@ -299,7 +304,7 @@ const CliCmdType CMD_BOARD =
 	"",
 	"\tExample:		ioplus 0 board  Display vcc, temperature, firmware version \n"};
 
-static void doBoard(int argc, char *argv[])
+int doBoard(int argc, char *argv[])
 {
 	int dev = -1;
 	u8 buff[3];
@@ -335,10 +340,11 @@ static void doBoard(int argc, char *argv[])
 	}
 	printf("Firmware ver %02d.%02d, CPU temperature %d C, voltage %0.2f V\n",
 		(int)buff[0], (int)buff[1], temperature, voltage);
+	return OK;
 }
 #ifdef HW_DEBUG
 #define ERR_FIFO_MAX_SIZE 512
-static void doGetErrors(int argc, char *argv[]);
+int doGetErrors(int argc, char *argv[]);
 const CliCmdType CMD_ERR =
 {
 	"err",
@@ -349,7 +355,7 @@ const CliCmdType CMD_ERR =
 	"",
 	"\tExample:		ioplus 0 err  Display errors strings readed from the board \n"};
 
-static void doGetErrors(int argc, char *argv[])
+int doGetErrors(int argc, char *argv[])
 {
 	int dev = -1;
 	u8 buff[ERR_FIFO_MAX_SIZE];
@@ -442,7 +448,7 @@ int relayChSet(int dev, u8 channel, OutStateEnumType state)
 	return resp;
 }
 
-int relayChGet(int dev, u8 channel, OutStateEnumType* state)
+int relayChGet(int dev, u8 channel, OutStateEnumType *state)
 {
 	u8 buff[2];
 
@@ -482,7 +488,7 @@ int relaySet(int dev, int val)
 	return i2cMem8Write(dev, I2C_MEM_RELAY_VAL_ADD, buff, 1);
 }
 
-int relayGet(int dev, int* val)
+int relayGet(int dev, int *val)
 {
 	u8 buff[2];
 
@@ -498,7 +504,7 @@ int relayGet(int dev, int* val)
 	return OK;
 }
 
-static void doRelayWrite(int argc, char *argv[]);
+int doRelayWrite(int argc, char *argv[]);
 const CliCmdType CMD_RELAY_WRITE =
 {
 	"relwr",
@@ -509,7 +515,7 @@ const CliCmdType CMD_RELAY_WRITE =
 	"\tUsage:		ioplus <id> relwr <value>\n",
 	"\tExample:		ioplus 0 relwr 2 1; Set Relay #2 on Board #0 On\n"};
 
-static void doRelayWrite(int argc, char *argv[])
+int doRelayWrite(int argc, char *argv[])
 {
 	int pin = 0;
 	OutStateEnumType state = STATE_COUNT;
@@ -615,9 +621,10 @@ static void doRelayWrite(int argc, char *argv[])
 			exit(1);
 		}
 	}
+	return OK;
 }
 
-static void doRelayRead(int argc, char *argv[]);
+int doRelayRead(int argc, char *argv[]);
 const CliCmdType CMD_RELAY_READ =
 {
 	"relrd",
@@ -628,7 +635,7 @@ const CliCmdType CMD_RELAY_READ =
 	"\tUsage:		ioplus <id> relrd\n",
 	"\tExample:		ioplus 0 relrd 2; Read Status of Relay #2 on Board #0\n"};
 
-static void doRelayRead(int argc, char *argv[])
+int doRelayRead(int argc, char *argv[])
 {
 	int pin = 0;
 	int val = 0;
@@ -679,9 +686,10 @@ static void doRelayRead(int argc, char *argv[])
 		printf("%s", CMD_RELAY_READ.usage2);
 		exit(1);
 	}
+	return OK;
 }
 
-static void doRelayTest(int argc, char* argv[]);
+int doRelayTest(int argc, char *argv[]);
 const CliCmdType CMD_TEST =
 {
 	"reltest",
@@ -692,7 +700,7 @@ const CliCmdType CMD_TEST =
 	"",
 	"\tExample:		ioplus 0 reltest\n"};
 
-static void doRelayTest(int argc, char* argv[])
+int doRelayTest(int argc, char *argv[])
 {
 	int dev = 0;
 	int i = 0;
@@ -700,7 +708,7 @@ static void doRelayTest(int argc, char* argv[])
 	int relVal;
 	int valR;
 	int relayResult = 0;
-	FILE* file = NULL;
+	FILE *file = NULL;
 	const u8 relayOrder[8] =
 	{
 		1,
@@ -833,156 +841,10 @@ static void doRelayTest(int argc, char* argv[])
 		fclose(file);
 	}
 	relaySet(dev, 0);
-}
-
-int gpioChSet(int dev, u8 channel, OutStateEnumType state)
-{
-	int resp;
-	u8 buff[2];
-
-	if ( (channel < CHANNEL_NR_MIN) || (channel > GPIO_CH_NR_MAX))
-	{
-		printf("Invalid GPIO nr!\n");
-		return ERROR;
-	}
-	if (FAIL == i2cMem8Read(dev, I2C_MEM_GPIO_VAL_ADD, buff, 1))
-	{
-		return FAIL;
-	}
-
-	switch (state)
-	{
-	case OFF:
-		buff[0] &= ~ (1 << (channel - 1));
-		resp = i2cMem8Write(dev, I2C_MEM_GPIO_VAL_ADD, buff, 1);
-		break;
-	case ON:
-		buff[0] |= 1 << (channel - 1);
-		resp = i2cMem8Write(dev, I2C_MEM_GPIO_VAL_ADD, buff, 1);
-		break;
-	default:
-		printf("Invalid GPIO state!\n");
-		return ERROR;
-		break;
-	}
-	return resp;
-}
-
-int gpioChGet(int dev, u8 channel, OutStateEnumType* state)
-{
-	u8 buff[2];
-
-	if (NULL == state)
-	{
-		return ERROR;
-	}
-
-	if ( (channel < CHANNEL_NR_MIN) || (channel > GPIO_CH_NR_MAX))
-	{
-		printf("Invalid GPIO nr!\n");
-		return ERROR;
-	}
-
-	if (FAIL == i2cMem8Read(dev, I2C_MEM_GPIO_VAL_ADD, buff, 1))
-	{
-		return ERROR;
-	}
-
-	if (buff[0] & (1 << (channel - 1)))
-	{
-		*state = ON;
-	}
-	else
-	{
-		*state = OFF;
-	}
 	return OK;
 }
 
-int gpioSet(int dev, int val)
-{
-	u8 buff[2];
-
-	buff[0] = 0xff & val;
-
-	return i2cMem8Write(dev, I2C_MEM_GPIO_VAL_ADD, buff, 1);
-}
-
-int gpioGet(int dev, int* val)
-{
-	u8 buff[2];
-
-	if (NULL == val)
-	{
-		return ERROR;
-	}
-	if (FAIL == i2cMem8Read(dev, I2C_MEM_GPIO_VAL_ADD, buff, 1))
-	{
-		return ERROR;
-	}
-	*val = buff[0];
-	return OK;
-}
-
-int gpioChDirSet(int dev, u8 channel, u8 state)
-{
-	int resp;
-	u8 buff[2];
-
-	if ( (channel < CHANNEL_NR_MIN) || (channel > GPIO_CH_NR_MAX))
-	{
-		printf("Invalid GPIO nr!\n");
-		return ERROR;
-	}
-	if (FAIL == i2cMem8Read(dev, I2C_MEM_GPIO_DIR_ADD, buff, 1))
-	{
-		return FAIL;
-	}
-
-	switch (state)
-	{
-	case 0: //output
-		buff[0] &= ~ (1 << (channel - 1));
-		resp = i2cMem8Write(dev, I2C_MEM_GPIO_DIR_ADD, buff, 1);
-		break;
-	case 1: //input
-		buff[0] |= 1 << (channel - 1);
-		resp = i2cMem8Write(dev, I2C_MEM_GPIO_DIR_ADD, buff, 1);
-		break;
-	default:
-		printf("Invalid GPIO state!\n");
-		return ERROR;
-		break;
-	}
-	return resp;
-}
-
-int gpioDirSet(int dev, int val)
-{
-	u8 buff[2];
-
-	buff[0] = 0xff & val;
-
-	return i2cMem8Write(dev, I2C_MEM_GPIO_DIR_ADD, buff, 1);
-}
-
-int gpioDirGet(int dev, int* val)
-{
-	u8 buff[2];
-
-	if (NULL == val)
-	{
-		return ERROR;
-	}
-	if (FAIL == i2cMem8Read(dev, I2C_MEM_GPIO_DIR_ADD, buff, 1))
-	{
-		return ERROR;
-	}
-	*val = buff[0];
-	return OK;
-}
-
-static void doGpioWrite(int argc, char *argv[]);
+int doGpioWrite(int argc, char *argv[]);
 const CliCmdType CMD_GPIO_WRITE =
 {
 	"gpiowr",
@@ -993,110 +855,6 @@ const CliCmdType CMD_GPIO_WRITE =
 	"\tUsage:		ioplus <id> gpiowr <value>\n",
 	"\tExample:		ioplus 0 gpiowr 2 1; Set GPIO pin #2 on Board #0 to 1 logic\n"};
 
-static void doGpioWrite(int argc, char *argv[])
-{
-	int pin = 0;
-	OutStateEnumType state = STATE_COUNT;
-	int val = 0;
-	int dev = 0;
-	OutStateEnumType stateR = STATE_COUNT;
-	int retry = 0;
-	int direction = 0x0f;
-
-	if ( (argc != 5) && (argc != 4))
-	{
-		printf("%s", CMD_GPIO_WRITE.usage1);
-		printf("%s", CMD_GPIO_WRITE.usage2);
-		exit(1);
-	}
-
-	dev = doBoardInit(atoi(argv[1]));
-	if (dev <= 0)
-	{
-		exit(1);
-	}
-	if (argc == 5)
-	{
-		pin = atoi(argv[3]);
-		if ( (pin < CHANNEL_NR_MIN) || (pin > GPIO_CH_NR_MAX))
-		{
-			printf("Gpio pin number value out of range\n");
-			exit(1);
-		}
-
-		/**/if ( (strcasecmp(argv[4], "up") == 0)
-			|| (strcasecmp(argv[4], "on") == 0))
-			state = ON;
-		else if ( (strcasecmp(argv[4], "down") == 0)
-			|| (strcasecmp(argv[4], "off") == 0))
-			state = OFF;
-		else
-		{
-			if ( (atoi(argv[4]) >= STATE_COUNT) || (atoi(argv[4]) < 0))
-			{
-				printf("Invalid relay state!\n");
-				exit(1);
-			}
-			state = (OutStateEnumType)atoi(argv[4]);
-		}
-
-		if (OK != gpioDirGet(dev, &direction))
-		{
-			printf("Fail to read gpio direction \n");
-			exit(1);
-		}
-
-		if ( (1 << (pin - 1)) & direction) //pin is input
-		{
-			printf("Fail to write gpio pin, is input\n");
-			exit(1);
-		}
-		retry = RETRY_TIMES;
-
-		while ( (retry > 0) && (stateR != state))
-		{
-			if (OK != gpioChSet(dev, pin, state))
-			{
-				printf("Fail to write gpio\n");
-				exit(1);
-			}
-			if (OK != gpioChGet(dev, pin, &stateR))
-			{
-				printf("Fail to read gpio\n");
-				exit(1);
-			}
-			retry--;
-		}
-#ifdef DEBUG_I
-		if(retry < RETRY_TIMES)
-		{
-			printf("retry %d times\n", 3-retry);
-		}
-#endif
-		if (retry == 0)
-		{
-			printf("Fail to write gpio pin\n");
-			exit(1);
-		}
-	}
-	else
-	{
-		val = atoi(argv[3]);
-		if (val < 0 || val > 0x0f)
-		{
-			printf("Invalid gpio value\n");
-			exit(1);
-		}
-
-		if (OK != gpioSet(dev, val))
-		{
-			printf("Fail to write GPIO\n");
-			exit(1);
-		}
-	}
-}
-
-static void doGpioRead(int argc, char *argv[]);
 const CliCmdType CMD_GPIO_READ =
 {
 	"gpiord",
@@ -1107,60 +865,6 @@ const CliCmdType CMD_GPIO_READ =
 	"\tUsage:		ioplus <id> gpiord\n",
 	"\tExample:		ioplus 0 gpiord 2; Read Status of Gpio pin #2 on Board #0\n"};
 
-static void doGpioRead(int argc, char *argv[])
-{
-	int pin = 0;
-	int val = 0;
-	int dev = 0;
-	OutStateEnumType state = STATE_COUNT;
-
-	dev = doBoardInit(atoi(argv[1]));
-	if (dev <= 0)
-	{
-		exit(1);
-	}
-
-	if (argc == 4)
-	{
-		pin = atoi(argv[3]);
-		if ( (pin < CHANNEL_NR_MIN) || (pin > GPIO_CH_NR_MAX))
-		{
-			printf("Gpio pin number value out of range!\n");
-			exit(1);
-		}
-
-		if (OK != gpioChGet(dev, pin, &state))
-		{
-			printf("Fail to read!\n");
-			exit(1);
-		}
-		if (state != 0)
-		{
-			printf("1\n");
-		}
-		else
-		{
-			printf("0\n");
-		}
-	}
-	else if (argc == 3)
-	{
-		if (OK != gpioGet(dev, &val))
-		{
-			printf("Fail to read!\n");
-			exit(1);
-		}
-		printf("%d\n", val);
-	}
-	else
-	{
-		printf("%s", CMD_GPIO_READ.usage1);
-		printf("%s", CMD_GPIO_READ.usage2);
-		exit(1);
-	}
-}
-
-static void doGpioDirWrite(int argc, char *argv[]);
 const CliCmdType CMD_GPIO_DIR_WRITE =
 {
 	"gpiodirwr",
@@ -1171,81 +875,6 @@ const CliCmdType CMD_GPIO_DIR_WRITE =
 	"\tUsage:		ioplus <id> gpiodirwr <value>\n",
 	"\tExample:	ioplus 0 gpiodirwr 2 1; Set GPIO pin #2 on Board #0 as input\n"};
 
-static void doGpioDirWrite(int argc, char *argv[])
-{
-	int pin = 0;
-	OutStateEnumType state = STATE_COUNT;
-	int val = 0;
-	int dev = 0;
-
-	if ( (argc != 5) && (argc != 4))
-	{
-		printf("%s", CMD_GPIO_WRITE.usage1);
-		printf("%s", CMD_GPIO_WRITE.usage2);
-		exit(1);
-	}
-
-	dev = doBoardInit(atoi(argv[1]));
-	if (dev <= 0)
-	{
-		exit(1);
-	}
-	if (argc == 5)
-	{
-		pin = atoi(argv[3]);
-		if ( (pin < CHANNEL_NR_MIN) || (pin > GPIO_CH_NR_MAX))
-		{
-			printf("Gpio pin number value out of range\n");
-			exit(1);
-		}
-
-		/**/if ( (strcasecmp(argv[4], "in") == 0)
-			|| (strcasecmp(argv[4], "input") == 0))
-			state = ON;
-		else if ( (strcasecmp(argv[4], "out") == 0)
-			|| (strcasecmp(argv[4], "output") == 0))
-			state = OFF;
-		else
-		{
-			if ( (atoi(argv[4]) >= STATE_COUNT) || (atoi(argv[4]) < 0))
-			{
-				printf("Invalid gpio direction!\n");
-				exit(1);
-			}
-			state = (OutStateEnumType)atoi(argv[4]);
-		}
-
-		if (OK != gpioChDirSet(dev, pin, state))
-		{
-			printf("Fail to write gpio direction \n");
-			exit(1);
-		}
-
-	}
-	else if (argc == 4)
-	{
-		val = atoi(argv[3]);
-		if (val < 0 || val > 0x0f)
-		{
-			printf("Invalid gpio direction value\n");
-			exit(1);
-		}
-
-		if (OK != gpioDirSet(dev, val))
-		{
-			printf("Fail to write gpio direction \n");
-			exit(1);
-		}
-	}
-	else
-	{
-		printf("%s", CMD_GPIO_DIR_WRITE.usage1);
-		printf("%s", CMD_GPIO_DIR_WRITE.usage2);
-		exit(1);
-	}
-}
-
-static void doGpioDirRead(int argc, char *argv[]);
 const CliCmdType CMD_GPIO_DIR_READ =
 	{
 		"gpiodirrd",
@@ -1256,105 +885,46 @@ const CliCmdType CMD_GPIO_DIR_READ =
 		"\tUsage:		ioplus <id> gpiodirrd\n",
 		"\tExample:		ioplus 0 gpiodirrd 2; Read direction of Gpio pin #2 on Board #0\n"};
 
-static void doGpioDirRead(int argc, char *argv[])
+const CliCmdType CMD_GPIO_EDGE_WRITE =
+	{
+		"gpioedgewr",
+		2,
+		&doGpioEdgeWrite,
+		"\tgpioedgewr:	Set gpio pin counting edges  0- count disable; 1-count rising edges; 2 - count falling edges; 3 - count both edges\n",
+		"\tUsage:		ioplus <id> gpioedgewr <channel> <edges> \n",
+		"",
+		"\tExample:	ioplus 0 gpioedgewr 2 1; Set GPIO pin #2 on Board #0 to count rising edges\n"};
+
+const CliCmdType CMD_GPIO_EDGE_READ =
+	{
+		"gpioedgerd",
+		2,
+		&doGpioEdgeRead,
+		"\tgpioEdgerd:	Read gpio counting edges 0 - none; 1 - rising; 2 - falling; 3 - both\n",
+		"\tUsage:		ioplus <id> gpioedgerd <pin>\n",
+		"",
+		"\tExample:		ioplus 0 gpioedgerd 2; Read counting edges of Gpio pin #2 on Board #0\n"};
+
+const CliCmdType CMD_GPIO_CNT_READ =
 {
-	int pin = 0;
-	int val = 0;
-	int dev = 0;
+	"gpiocntrd",
+	2,
+	&doGpioCntRead,
+	"\tgpiocntrd:	Read gpio edges count for one GPIO imput pin\n",
+	"\tUsage:		ioplus <id> gpiocntrd <channel>\n",
+	"",
+	"\tExample:		ioplus 0 gpiocntrd 2; Read contor of Gpio pin #2 on Board #0\n"};
 
-	dev = doBoardInit(atoi(argv[1]));
-	if (dev <= 0)
+const CliCmdType CMD_GPIO_CNT_RESET =
 	{
-		exit(1);
-	}
+		"gpiocntrst",
+		2,
+		&doGpioCntRst,
+		"\tgpiocntrst:	Reset gpio edges count for one GPIO imput pin\n",
+		"\tUsage:		ioplus <id> gpiocntrst <channel>\n",
+		"",
+		"\tExample:		ioplus 0 gpiocntrst 2; Reset contor of Gpio pin #2 on Board #0\n"};
 
-	if (argc == 4)
-	{
-		pin = atoi(argv[3]);
-		if ( (pin < CHANNEL_NR_MIN) || (pin > GPIO_CH_NR_MAX))
-		{
-			printf("Gpio pin number value out of range!\n");
-			exit(1);
-		}
-
-		if (OK != gpioDirGet(dev, &val))
-		{
-			printf("Fail to read!\n");
-			exit(1);
-		}
-		if ( (val & (1 << (pin - 1))) != 0)
-		{
-			printf("1\n");
-		}
-		else
-		{
-			printf("0\n");
-		}
-	}
-	else if (argc == 3)
-	{
-		if (OK != gpioDirGet(dev, &val))
-		{
-			printf("Fail to read!\n");
-			exit(1);
-		}
-		printf("%d\n", val);
-	}
-	else
-	{
-		printf("%s", CMD_GPIO_DIR_READ.usage1);
-		printf("%s", CMD_GPIO_DIR_READ.usage2);
-		exit(1);
-	}
-}
-int optoChGet(int dev, u8 channel, OutStateEnumType* state)
-{
-	u8 buff[2];
-
-	if (NULL == state)
-	{
-		return ERROR;
-	}
-
-	if ( (channel < CHANNEL_NR_MIN) || (channel > OPTO_IN_CH_NR_MAX))
-	{
-		printf("Invalid opto channel nr!\n");
-		return ERROR;
-	}
-
-	if (FAIL == i2cMem8Read(dev, I2C_MEM_OPTO_IN_ADD, buff, 1))
-	{
-		return ERROR;
-	}
-
-	if (buff[0] & (1 << (channel - 1)))
-	{
-		*state = ON;
-	}
-	else
-	{
-		*state = OFF;
-	}
-	return OK;
-}
-
-int optoGet(int dev, int* val)
-{
-	u8 buff[2];
-
-	if (NULL == val)
-	{
-		return ERROR;
-	}
-	if (FAIL == i2cMem8Read(dev, I2C_MEM_OPTO_IN_ADD, buff, 1))
-	{
-		return ERROR;
-	}
-	*val = buff[0];
-	return OK;
-}
-
-static void doOptoRead(int argc, char *argv[]);
 const CliCmdType CMD_OPTO_READ =
 	{
 		"optrd",
@@ -1365,60 +935,88 @@ const CliCmdType CMD_OPTO_READ =
 		"\tUsage:		ioplus <id> optrd\n",
 		"\tExample:		ioplus 0 optrd 2; Read Status of Optocoupled input ch #2 on Board #0\n"};
 
-static void doOptoRead(int argc, char *argv[])
-{
-	int pin = 0;
-	int val = 0;
-	int dev = 0;
-	OutStateEnumType state = STATE_COUNT;
-
-	dev = doBoardInit(atoi(argv[1]));
-	if (dev <= 0)
+const CliCmdType CMD_OPTO_EDGE_WRITE =
 	{
-		exit(1);
-	}
+		"optedgewr",
+		2,
+		&doOptoEdgeWrite,
+		"\toptedgewr:	Set optocoupled channel counting edges  0- count disable; 1-count rising edges; 2 - count falling edges; 3 - count both edges\n",
+		"\tUsage:		ioplus <id> optedgewr <channel> <edges> \n",
+		"",
+		"\tExample:	ioplus 0 optedgewr 2 1; Set Optocoupled channel #2 on Board #0 to count rising edges\n"};
 
-	if (argc == 4)
+const CliCmdType CMD_OPTO_EDGE_READ =
 	{
-		pin = atoi(argv[3]);
-		if ( (pin < CHANNEL_NR_MIN) || (pin > OPTO_IN_CH_NR_MAX))
-		{
-			printf("Opto input channel number value out of range!\n");
-			exit(1);
-		}
+		"optedgerd",
+		2,
+		&doOptoEdgeRead,
+		"\toptedgerd:	Read optocoupled counting edges 0 - none; 1 - rising; 2 - falling; 3 - both\n",
+		"\tUsage:		ioplus <id> optedgerd <pin>\n",
+		"",
+		"\tExample:		ioplus 0 optedgerd 2; Read counting edges of optocoupled channel #2 on Board #0\n"};
 
-		if (OK != optoChGet(dev, pin, &state))
-		{
-			printf("Fail to read!\n");
-			exit(1);
-		}
-		if (state != 0)
-		{
-			printf("1\n");
-		}
-		else
-		{
-			printf("0\n");
-		}
-	}
-	else if (argc == 3)
+const CliCmdType CMD_OPTO_CNT_READ =
 	{
-		if (OK != optoGet(dev, &val))
-		{
-			printf("Fail to read!\n");
-			exit(1);
-		}
-		printf("%d\n", val);
-	}
-	else
-	{
-		printf("%s", CMD_OPTO_READ.usage1);
-		printf("%s", CMD_OPTO_READ.usage2);
-		exit(1);
-	}
-}
+		"optcntrd",
+		2,
+		&doOptoCntRead,
+		"\toptcntrd:	Read potocoupled inputs edges count for one pin\n",
+		"\tUsage:		ioplus <id> optcntrd <channel>\n",
+		"",
+		"\tExample:		ioplus 0 optcntrd 2; Read contor of opto input #2 on Board #0\n"};
 
-int odGet(int dev, int ch, float* val)
+const CliCmdType CMD_OPTO_CNT_RESET =
+	{
+		"optcntrst",
+		2,
+		&doOptoCntReset,
+		"\toptcntrst:	Reset optocoupled inputs edges count for one pin\n",
+		"\tUsage:		ioplus <id> optcntrst <channel>\n",
+		"",
+		"\tExample:		ioplus 0 optcntrst 2; Reset contor of opto input #2 on Board #0\n"};
+
+
+const CliCmdType CMD_OPTO_ENC_WRITE =
+	{
+		"optencwr",
+		2,
+		&doOptoEncoderWrite,
+		"\toptencwr:	Enable / Disable optocoupled quadrature encoder, encoder 1 connected to opto ch1 and 2, encoder 2 on ch3 and 4 ... \n",
+		"\tUsage:		ioplus <id> optencwr <channel> <0/1> \n",
+		"",
+		"\tExample:	ioplus 0 optencwr 2 1; Enable Optocoupled channel encoder  #2  on Board \n"};
+
+const CliCmdType CMD_OPTO_ENC_READ =
+	{
+		"optencrd",
+		2,
+		&doOptoEncoderRead,
+		"\toptencrd:	Read optocoupled quadrature encoder state 0- disabled 1 - enabled\n",
+		"\tUsage:		ioplus <id> optencrd <pin>\n",
+		"",
+		"\tExample:		ioplus 0 optencrd 2; Read state of optocoupled encoder channel #2 on Board #0\n"};
+
+const CliCmdType CMD_OPTO_ENC_CNT_READ =
+	{
+		"optcntencrd",
+		2,
+		&doOptoEncoderCntRead,
+		"\toptcntencrd:	Read potocoupled encoder count for one channel\n",
+		"\tUsage:		ioplus <id> optcntencrd <channel>\n",
+		"",
+		"\tExample:		ioplus 0 optcntencrd 2; Read contor of opto encoder #2 on Board #0\n"};
+
+const CliCmdType CMD_OPTO_ENC_CNT_RESET =
+	{
+		"optcntencrst",
+		2,
+		&doOptoEncoderCntReset,
+		"\toptcntencrst:	Reset optocoupled encoder count \n",
+		"\tUsage:		ioplus <id> optcntencrst <channel>\n",
+		"",
+		"\tExample:		ioplus 0 optcntencrst 2; Reset contor of encoder #2 on Board #0\n"};
+
+int odGet(int dev, int ch, float *val)
 {
 	u8 buff[2] =
 	{
@@ -1474,7 +1072,7 @@ int odSet(int dev, int ch, float val)
 	return OK;
 }
 
-static void doOdRead(int argc, char *argv[]);
+int doOdRead(int argc, char *argv[]);
 const CliCmdType CMD_OD_READ =
 	{
 		"odrd",
@@ -1485,7 +1083,7 @@ const CliCmdType CMD_OD_READ =
 		"",
 		"\tExample:		ioplus 0 odrd 2; Read pwm value of open drain channel #2 on Board #0\n"};
 
-static void doOdRead(int argc, char *argv[])
+int doOdRead(int argc, char *argv[])
 {
 	int ch = 0;
 	float val = 0;
@@ -1519,9 +1117,10 @@ static void doOdRead(int argc, char *argv[])
 		printf("Invalid params number:\n %s", CMD_OD_READ.usage1);
 		exit(1);
 	}
+	return OK;
 }
 
-static void doOdWrite(int argc, char *argv[]);
+int doOdWrite(int argc, char *argv[]);
 const CliCmdType CMD_OD_WRITE =
 	{
 		"odwr",
@@ -1532,7 +1131,7 @@ const CliCmdType CMD_OD_WRITE =
 		"",
 		"\tExample:		ioplus 0 odwr 2 12.5; Write pwm 12.5% to open drain channel #2 on Board #0\n"};
 
-static void doOdWrite(int argc, char *argv[])
+int doOdWrite(int argc, char *argv[])
 {
 	int ch = 0;
 	int dev = 0;
@@ -1571,9 +1170,10 @@ static void doOdWrite(int argc, char *argv[])
 		printf("Invalid params number:\n %s", CMD_OD_WRITE.usage1);
 		exit(1);
 	}
+	return OK;
 }
 
-int dacGet(int dev, int ch, float* val)
+int dacGet(int dev, int ch, float *val)
 {
 	u8 buff[2] =
 	{
@@ -1627,7 +1227,7 @@ int dacSet(int dev, int ch, float val)
 	return OK;
 }
 
-static void doDacRead(int argc, char *argv[]);
+int doDacRead(int argc, char *argv[]);
 const CliCmdType CMD_DAC_READ =
 	{
 		"dacrd",
@@ -1638,7 +1238,7 @@ const CliCmdType CMD_DAC_READ =
 		"",
 		"\tExample:		ioplus 0 dacrd 2; Read the voltage on DAC channel #2 on Board #0\n"};
 
-static void doDacRead(int argc, char *argv[])
+int doDacRead(int argc, char *argv[])
 {
 	int ch = 0;
 	float val = 0;
@@ -1672,9 +1272,10 @@ static void doDacRead(int argc, char *argv[])
 		printf("Invalid params number:\n %s", CMD_DAC_READ.usage1);
 		exit(1);
 	}
+	return OK;
 }
 
-static void doDacWrite(int argc, char *argv[]);
+int doDacWrite(int argc, char *argv[]);
 const CliCmdType CMD_DAC_WRITE =
 	{
 		"dacwr",
@@ -1685,7 +1286,7 @@ const CliCmdType CMD_DAC_WRITE =
 		"",
 		"\tExample:		ioplus 0 dacwr 2 2.5; Write 2.5V to DAC channel #2 on Board #0\n"};
 
-static void doDacWrite(int argc, char *argv[])
+int doDacWrite(int argc, char *argv[])
 {
 	int ch = 0;
 	int dev = 0;
@@ -1724,9 +1325,10 @@ static void doDacWrite(int argc, char *argv[])
 		printf("Invalid params number:\n %s", CMD_DAC_WRITE.usage1);
 		exit(1);
 	}
+	return OK;
 }
 
-int adcGet(int dev, int ch, float* val)
+int adcGet(int dev, int ch, float *val)
 {
 	u8 buff[2] =
 	{
@@ -1749,7 +1351,7 @@ int adcGet(int dev, int ch, float* val)
 	return OK;
 }
 
-static void doAdcRead(int argc, char *argv[]);
+int doAdcRead(int argc, char *argv[]);
 const CliCmdType CMD_ADC_READ =
 	{
 		"adcrd",
@@ -1760,7 +1362,7 @@ const CliCmdType CMD_ADC_READ =
 		"",
 		"\tExample:		ioplus 0 adcrd 2; Read the voltage input on ADC channel #2 on Board #0\n"};
 
-static void doAdcRead(int argc, char *argv[])
+int doAdcRead(int argc, char *argv[])
 {
 	int ch = 0;
 	float val = 0;
@@ -1794,6 +1396,7 @@ static void doAdcRead(int argc, char *argv[])
 		printf("Invalid params number:\n %s", CMD_ADC_READ.usage1);
 		exit(1);
 	}
+	return OK;
 }
 
 void getCalStat(int dev)
@@ -1823,7 +1426,7 @@ void getCalStat(int dev)
 	}
 }
 
-static void doAdcCal(int argc, char *argv[]);
+int doAdcCal(int argc, char *argv[]);
 const CliCmdType CMD_ADC_CAL =
 	{
 		"adccal",
@@ -1834,7 +1437,7 @@ const CliCmdType CMD_ADC_CAL =
 		"",
 		"\tExample:		ioplus 0 adccal 2 0.5; Calibrate the voltage input on ADC channel #2 on Board #0 at 0.5V\n"};
 
-static void doAdcCal(int argc, char *argv[])
+int doAdcCal(int argc, char *argv[])
 {
 	int ch = 0;
 	float val = 0;
@@ -1884,9 +1487,10 @@ static void doAdcCal(int argc, char *argv[])
 		printf("Invalid params number:\n %s", CMD_ADC_CAL.usage1);
 		exit(1);
 	}
+	return OK;
 }
 
-static void doAdcCalRst(int argc, char *argv[]);
+int doAdcCalRst(int argc, char *argv[]);
 const CliCmdType CMD_ADC_CAL_RST =
 	{
 		"adccalrst",
@@ -1897,7 +1501,7 @@ const CliCmdType CMD_ADC_CAL_RST =
 		"",
 		"\tExample:		ioplus 0 adccalrst 2 ; Reset the calibration on ADC channel #2 on Board #0 at factory default\n"};
 
-static void doAdcCalRst(int argc, char *argv[])
+int doAdcCalRst(int argc, char *argv[])
 {
 	int ch = 0;
 
@@ -1940,9 +1544,10 @@ static void doAdcCalRst(int argc, char *argv[])
 		printf("Invalid params number:\n %s", CMD_ADC_CAL_RST.usage1);
 		exit(1);
 	}
+	return OK;
 }
 
-static void doDacCal(int argc, char *argv[]);
+int doDacCal(int argc, char *argv[]);
 const CliCmdType CMD_DAC_CAL =
 	{
 		"daccal",
@@ -1953,7 +1558,7 @@ const CliCmdType CMD_DAC_CAL =
 		"",
 		"\tExample:		ioplus 0 daccal 2 0.5; Calibrate the voltage outputs on DAC channel #2 on Board #0 at 0.5V\n"};
 
-static void doDacCal(int argc, char *argv[])
+int doDacCal(int argc, char *argv[])
 {
 	int ch = 0;
 	float val = 0;
@@ -2003,9 +1608,10 @@ static void doDacCal(int argc, char *argv[])
 		printf("Invalid params number:\n %s", CMD_DAC_CAL.usage1);
 		exit(1);
 	}
+	return OK;
 }
 
-static void doDacCalRst(int argc, char *argv[]);
+int doDacCalRst(int argc, char *argv[]);
 const CliCmdType CMD_DAC_CAL_RST =
 	{
 		"daccalrst",
@@ -2016,7 +1622,7 @@ const CliCmdType CMD_DAC_CAL_RST =
 		"",
 		"\tExample:		ioplus 0 daccalrst 2; Reset calibration data on DAC channel #2 on Board #0 at factory default\n"};
 
-static void doDacCalRst(int argc, char *argv[])
+int doDacCalRst(int argc, char *argv[])
 {
 	int ch = 0;
 
@@ -2060,20 +1666,21 @@ static void doDacCalRst(int argc, char *argv[])
 		printf("Invalid params number:\n %s", CMD_DAC_CAL_RST.usage1);
 		exit(1);
 	}
+	return OK;
 }
 
-static void doWdtReload(int argc, char *argv[]);
+int doWdtReload(int argc, char *argv[]);
 const CliCmdType CMD_WDT_RELOAD =
 	{
 		"wdtr",
 		2,
 		&doWdtReload,
-		"\twdtr:			Reload the watchdog timer and enable the watchdog if is disabled\n",
+		"\twdtr:		Reload the watchdog timer and enable the watchdog if is disabled\n",
 		"\tUsage:		ioplus <id> wdtr\n",
 		"",
 		"\tExample:		ioplus 0 wdtr; Reload the watchdog timer on Board #0 with the period \n"};
 
-static void doWdtReload(int argc, char *argv[])
+int doWdtReload(int argc, char *argv[])
 {
 	int dev = 0;
 	u8 buff[2] =
@@ -2101,9 +1708,10 @@ static void doWdtReload(int argc, char *argv[])
 		printf("Invalid params number:\n %s", CMD_WDT_RELOAD.usage1);
 		exit(1);
 	}
+	return OK;
 }
 
-static void doWdtSetPeriod(int argc, char *argv[]);
+int doWdtSetPeriod(int argc, char *argv[]);
 const CliCmdType CMD_WDT_SET_PERIOD =
 	{
 		"wdtpwr",
@@ -2114,7 +1722,7 @@ const CliCmdType CMD_WDT_SET_PERIOD =
 		"",
 		"\tExample:		ioplus 0 wdtpwr 10; Set the watchdog timer period on Board #0 at 10 seconds \n"};
 
-static void doWdtSetPeriod(int argc, char *argv[])
+int doWdtSetPeriod(int argc, char *argv[])
 {
 	int dev = 0;
 	u16 period;
@@ -2149,9 +1757,10 @@ static void doWdtSetPeriod(int argc, char *argv[])
 		printf("Invalid params number:\n %s", CMD_WDT_SET_PERIOD.usage1);
 		exit(1);
 	}
+	return OK;
 }
 
-static void doWdtGetPeriod(int argc, char *argv[]);
+int doWdtGetPeriod(int argc, char *argv[]);
 const CliCmdType CMD_WDT_GET_PERIOD =
 	{
 		"wdtprd",
@@ -2162,7 +1771,7 @@ const CliCmdType CMD_WDT_GET_PERIOD =
 		"",
 		"\tExample:		ioplus 0 wdtprd; Get the watchdog timer period on Board #0\n"};
 
-static void doWdtGetPeriod(int argc, char *argv[])
+int doWdtGetPeriod(int argc, char *argv[])
 {
 	int dev = 0;
 	u16 period;
@@ -2192,20 +1801,21 @@ static void doWdtGetPeriod(int argc, char *argv[])
 		printf("Invalid params number:\n %s", CMD_WDT_GET_PERIOD.usage1);
 		exit(1);
 	}
+	return OK;
 }
 
-static void doWdtSetInitPeriod(int argc, char *argv[]);
+int doWdtSetInitPeriod(int argc, char *argv[]);
 const CliCmdType CMD_WDT_SET_INIT_PERIOD =
 	{
 		"wdtipwr",
 		2,
 		&doWdtSetInitPeriod,
-		"\twdtipwr:		Set the watchdog initial period in seconds, This period is loaded after power cycle, giving Raspberry time to boot\n",
+		"\twdtipwr:	Set the watchdog initial period in seconds, This period is loaded after power cycle, giving Raspberry time to boot\n",
 		"\tUsage:		ioplus <id> wdtipwr <val> \n",
 		"",
 		"\tExample:		ioplus 0 wdtipwr 10; Set the watchdog timer initial period on Board #0 at 10 seconds \n"};
 
-static void doWdtSetInitPeriod(int argc, char *argv[])
+int doWdtSetInitPeriod(int argc, char *argv[])
 {
 	int dev = 0;
 	u16 period;
@@ -2240,20 +1850,21 @@ static void doWdtSetInitPeriod(int argc, char *argv[])
 		printf("Invalid params number:\n %s", CMD_WDT_SET_INIT_PERIOD.usage1);
 		exit(1);
 	}
+	return OK;
 }
 
-static void doWdtGetInitPeriod(int argc, char *argv[]);
+int doWdtGetInitPeriod(int argc, char *argv[]);
 const CliCmdType CMD_WDT_GET_INIT_PERIOD =
 	{
 		"wdtiprd",
 		2,
 		&doWdtGetInitPeriod,
-		"\twdtiprd:		Get the watchdog initial period in seconds. This period is loaded after power cycle, giving Raspberry time to boot\n",
+		"\twdtiprd:	Get the watchdog initial period in seconds. This period is loaded after power cycle, giving Raspberry time to boot\n",
 		"\tUsage:		ioplus <id> wdtiprd \n",
 		"",
 		"\tExample:		ioplus 0 wdtiprd; Get the watchdog timer initial period on Board #0\n"};
 
-static void doWdtGetInitPeriod(int argc, char *argv[])
+int doWdtGetInitPeriod(int argc, char *argv[])
 {
 	int dev = 0;
 	u16 period;
@@ -2283,20 +1894,21 @@ static void doWdtGetInitPeriod(int argc, char *argv[])
 		printf("Invalid params number:\n %s", CMD_WDT_GET_INIT_PERIOD.usage1);
 		exit(1);
 	}
+	return OK;
 }
 
-static void doWdtSetOffPeriod(int argc, char *argv[]);
+int doWdtSetOffPeriod(int argc, char *argv[]);
 const CliCmdType CMD_WDT_SET_OFF_PERIOD =
 	{
 		"wdtopwr",
 		2,
 		&doWdtSetOffPeriod,
-		"\twdtopwr:		Set the watchdog off period in seconds (max 48 days), This is the time that watchdog mantain Raspberry turned off \n",
+		"\twdtopwr:	Set the watchdog off period in seconds (max 48 days), This is the time that watchdog mantain Raspberry turned off \n",
 		"\tUsage:		ioplus <id> wdtopwr <val> \n",
 		"",
 		"\tExample:		ioplus 0 wdtopwr 10; Set the watchdog off interval on Board #0 at 10 seconds \n"};
 
-static void doWdtSetOffPeriod(int argc, char *argv[])
+int doWdtSetOffPeriod(int argc, char *argv[])
 {
 	int dev = 0;
 	u32 period;
@@ -2334,20 +1946,21 @@ static void doWdtSetOffPeriod(int argc, char *argv[])
 		printf("Invalid params number:\n %s", CMD_WDT_SET_OFF_PERIOD.usage1);
 		exit(1);
 	}
+	return OK;
 }
 
-static void doWdtGetOffPeriod(int argc, char *argv[]);
+int doWdtGetOffPeriod(int argc, char *argv[]);
 const CliCmdType CMD_WDT_GET_OFF_PERIOD =
 	{
 		"wdtoprd",
 		2,
 		&doWdtGetOffPeriod,
-		"\twdtoprd:		Get the watchdog off period in seconds (max 48 days), This is the time that watchdog mantain Raspberry turned off \n",
+		"\twdtoprd:	Get the watchdog off period in seconds (max 48 days), This is the time that watchdog mantain Raspberry turned off \n",
 		"\tUsage:		ioplus <id> wdtoprd \n",
 		"",
 		"\tExample:		ioplus 0 wdtoprd; Get the watchdog off period on Board #0\n"};
 
-static void doWdtGetOffPeriod(int argc, char *argv[])
+int doWdtGetOffPeriod(int argc, char *argv[])
 {
 	int dev = 0;
 	u32 period;
@@ -2380,9 +1993,10 @@ static void doWdtGetOffPeriod(int argc, char *argv[])
 		printf("Invalid params number:\n %s", CMD_WDT_GET_OFF_PERIOD.usage1);
 		exit(1);
 	}
+	return OK;
 }
 
-static void doLoopbackTest(int argc, char *argv[]);
+int doLoopbackTest(int argc, char *argv[]);
 const CliCmdType CMD_IO_TEST =
 {
 	"iotst",
@@ -2393,7 +2007,7 @@ const CliCmdType CMD_IO_TEST =
 	"",
 	"\tExample:		ioplus 0 iotst; Run the tests \n"};
 
-static void doLoopbackTest(int argc, char *argv[])
+int doLoopbackTest(int argc, char *argv[])
 {
 	int dev = 0;
 	u8 i = 0;
@@ -2641,9 +2255,10 @@ static void doLoopbackTest(int argc, char *argv[])
 		printf("Invalid params number:\n %s", CMD_IO_TEST.usage1);
 		exit(1);
 	}
+	return OK;
 }
 
-const CliCmdType* gCmdArray[] =
+const CliCmdType *gCmdArray[] =
 {
 	&CMD_VERSION,
 	&CMD_HELP,
@@ -2661,7 +2276,19 @@ const CliCmdType* gCmdArray[] =
 	&CMD_GPIO_READ,
 	&CMD_GPIO_DIR_WRITE,
 	&CMD_GPIO_DIR_READ,
+	&CMD_GPIO_EDGE_WRITE,
+	&CMD_GPIO_EDGE_READ,
+	&CMD_GPIO_CNT_READ,
+	&CMD_GPIO_CNT_RESET,
 	&CMD_OPTO_READ,
+	&CMD_OPTO_EDGE_READ,
+	&CMD_OPTO_EDGE_WRITE,
+	&CMD_OPTO_CNT_READ,
+	&CMD_OPTO_CNT_RESET,
+	&CMD_OPTO_ENC_WRITE,
+	&CMD_OPTO_ENC_READ,
+	&CMD_OPTO_ENC_CNT_READ,
+	&CMD_OPTO_ENC_CNT_RESET,
 	&CMD_OD_READ,
 	&CMD_OD_WRITE,
 	&CMD_DAC_READ,
@@ -2684,6 +2311,7 @@ const CliCmdType* gCmdArray[] =
 int main(int argc, char *argv[])
 {
 	int i = 0;
+	int ret = OK;
 
 	if (argc == 1)
 	{
@@ -2696,8 +2324,17 @@ int main(int argc, char *argv[])
 		{
 			if (strcasecmp(argv[gCmdArray[i]->namePos], gCmdArray[i]->name) == 0)
 			{
-				gCmdArray[i]->pFunc(argc, argv);
-				return 0;
+				ret = gCmdArray[i]->pFunc(argc, argv);
+				if (ret == ARG_CNT_ERR)
+				{
+					printf("Invalid parameters number!\n");
+					printf("%s", gCmdArray[i]->usage1);
+					if (strlen(gCmdArray[i]->usage2) > 2)
+					{
+						printf("%s", gCmdArray[i]->usage2);
+					}
+				}
+				return ret;
 			}
 		}
 		i++;

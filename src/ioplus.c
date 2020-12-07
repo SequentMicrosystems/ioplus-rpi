@@ -307,7 +307,7 @@ const CliCmdType CMD_BOARD =
 int doBoard(int argc, char *argv[])
 {
 	int dev = -1;
-	u8 buff[3];
+	u8 buff[4];
 	int resp = 0;
 	int temperature = 25;
 	float voltage = 3.3;
@@ -332,14 +332,14 @@ int doBoard(int argc, char *argv[])
 	memcpy(&resp, &buff[1], 2);
 	voltage = (float)resp / 1000; //read in milivolts
 
-	resp = i2cMem8Read(dev, I2C_MEM_REVISION_MAJOR_ADD, buff, 2);
+	resp = i2cMem8Read(dev, I2C_MEM_REVISION_HW_MAJOR_ADD, buff, 4);
 	if (FAIL == resp)
 	{
 		printf("Fail to read board info!\n");
 		exit(1);
 	}
-	printf("Firmware ver %02d.%02d, CPU temperature %d C, voltage %0.2f V\n",
-		(int)buff[0], (int)buff[1], temperature, voltage);
+	printf("Hardware %02d.%02d, Firmware %02d.%02d, CPU temperature %d C, voltage %0.2f V\n",
+		(int)buff[0], (int)buff[1], (int)buff[2], (int)buff[3], temperature, voltage);
 	return OK;
 }
 #ifdef HW_DEBUG

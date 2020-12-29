@@ -53,6 +53,15 @@ Set the output state of one relay
 **value** - 0 = relay on, 1 = relay off
 
 
+### getRelayCh(stack, channel)
+
+Return state of one relay
+
+**stack** - stack level, set with jumpers [0..7]
+
+**channel** - Relay nr [1..8]
+
+
 ### setRelays(stack, value)
 
 Set all relays 8 bits value
@@ -60,6 +69,13 @@ Set all relays 8 bits value
 **stack** - stack level, set with jumpers [0..7]
 
 **value**  [0..255], 0 - all relays OFF; 255 - all relays ON
+
+
+### getRelays(stack)
+
+Return state of all relays, 8 bits value
+
+**stack** - stack level, set with jumpers [0..7]
 
 
 ### getOptoCh(stack, channel)

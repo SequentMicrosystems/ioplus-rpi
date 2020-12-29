@@ -123,6 +123,28 @@ def setRelays(stack, value):
         return -1
     bus.close()
 
+def getRelays(stack):
+    if stack < 0 or stack > 7:
+        raise ValueError('Invalid stack level')
+    bus = smbus.SMBus(1)
+    RELAY_VAL_ADD = 0;
+    try:
+        val = bus.read_word_data(DEVICE_ADDRESS + stack, RELAY_VAL_ADD)
+    except Exception as e:
+        bus.close()
+        return -1
+    bus.close()
+    return val
+
+def getRelayCh(stack, channel):
+    if stack < 0 or stack > 7:
+        raise ValueError('Invalid stack level')
+    if channel < 1 or channel > 8:
+        raise ValueError('Invalid channel number')
+    val=getRelays(stack)
+    if val<0:
+        return -1
+    return (val>>(channel-1)) & 1
 
 def getOptoCh(stack, channel):
     if stack < 0 or stack > 7:

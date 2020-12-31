@@ -38,6 +38,6 @@ If you clone the repository any update can be made with the following commands:
 
 ## [Python Library](python/README.md)
 
-## [Domoticz Plugin](domoticz/README.md)
+## [Domoticz Plugin](https://github.com/SequentMicrosystems/ioplus-rpi/tree/master/domoticz)
 
 ## [Node-Red](node-red/README.md)

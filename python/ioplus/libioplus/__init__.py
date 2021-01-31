@@ -123,6 +123,7 @@ def setRelays(stack, value):
         return -1
     bus.close()
 
+
 def getRelays(stack):
     if stack < 0 or stack > 7:
         raise ValueError('Invalid stack level')
@@ -136,15 +137,17 @@ def getRelays(stack):
     bus.close()
     return val
 
+
 def getRelayCh(stack, channel):
     if stack < 0 or stack > 7:
         raise ValueError('Invalid stack level')
     if channel < 1 or channel > 8:
         raise ValueError('Invalid channel number')
-    val=getRelays(stack)
-    if val<0:
+    val = getRelays(stack)
+    if val < 0:
         return -1
-    return (val>>(channel-1)) & 1
+    return (val >> (channel - 1)) & 1
+
 
 def getOptoCh(stack, channel):
     if stack < 0 or stack > 7:
@@ -159,7 +162,7 @@ def getOptoCh(stack, channel):
         bus.close()
         return -1
     bus.close()
-    if val & (1 << channel):
+    if val & (1 << (channel - 1)):
         return 1
     else:
         return 0

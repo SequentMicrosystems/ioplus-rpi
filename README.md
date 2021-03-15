@@ -40,4 +40,6 @@ If you clone the repository any update can be made with the following commands:
 
 ## [Domoticz Plugin](https://github.com/SequentMicrosystems/ioplus-rpi/tree/master/domoticz)
 
-## [Node-Red](node-red/README.md)
+## [Node-Red](node-red/README.md) example based on exec node.
+
+## [Node-Red nodes](node-red-contrib-sm-ioplus)

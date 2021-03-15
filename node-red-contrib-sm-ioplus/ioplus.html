@@ -1,0 +1,536 @@
+<script type="text/html" data-template-name="IOPLUS RELAY">
+    <div class="form-row">
+        <label for="node-input-stack"><i class="fa fa-address-card-o"></i> Board Stack Level</label>
+        <input id="node-input-stack" class="ioplus-relay-out-stack" placeholder="[msg.stack]" min=0 max=7 style="width:100px; height:16px;">
+    </div>
+    
+    <div class="form-row">
+        <label for="node-input-relay"><i class="fa fa-empire"></i> Relay Number</label>
+        <input id="node-input-relay" class="ioplus-relay-out-relay" placeholder="[msg.relay]" min=0 max=8 style="width:100px; height:16px;">
+    </div>
+    <div class="form-row">
+        <label for="node-input-payload"><i class="fa fa-envelope"></i> Payload</span></label>
+        <input type="text" id="node-input-payload" style="width:70%">
+        <input type="hidden" id="node-input-payloadType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+ 
+<script type="text/html" data-help-name="ioplus relay">
+    <p>Provides a connection to an Sequent Microsystems Home Automations card relays.</p>
+    <p>Set one relay from 8 with the value received in <code>msg.payload</code></p>
+    <p>If you select relay number to 0, set all relays state (8 bits) wiht the value received in <code>msg.payload</code></p>
+    <p>You can specify the card stack level in the edit dialog box or programaticaly with the input message <code>msg.stack</code></p>
+    <p>You can specify the relay number in the edit dialog box or programaticaly with the input message <code>msg.relay</code></p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('IOPLUS RELAY', {
+        category: 'Sequent Microsystems',
+        defaults: {
+            name: {value:""},
+            stack: {value:"0"},
+            relay: {value:"1"},
+            payload: {value:"payload", required:false, validate: RED.validators.typedInput("payloadType")},
+            payloadType: {value:"msg"},
+        },
+        color:"#7a9da6",
+        inputs:1,
+        outputs:1,
+        icon: "relay.png",
+        align: "right",
+        label: function() { return this.name||'ioplus relay'; },
+        labelStyle: function() { return this.name?"node_label_italic":"";},
+        oneditprepare: function() {
+            if (this.payloadType == null) {
+                this.payloadType = "msg";
+            } else if (this.payloadType === 'string' ) {
+                this.payloadType = "str";
+            }
+
+           
+            if (this.stack === undefined) {
+                $("#node-input-stack").val(1);
+            }
+            $("#node-input-stack").spinner({
+                min:0,
+                max:7
+            });
+            if (this.relay === undefined) {
+                $("#node-input-relay").val(1);
+            }
+            $("#node-input-relay").spinner({
+                min:0,
+                max:8
+            }); 
+            $("#node-input-payload").typedInput({
+                default: 'msg',
+                typeField: $("#node-input-payloadType"),
+                types:['msg','flow','global','str','num','bool','json','bin']
+            });
+            $("#node-input-payload").typedInput('type',this.payloadType);
+            $("#node-input-payloadType").val(this.payloadType);
+            if ($("#node-input-payload").typedInput('type') === 'msg' &&
+                $("#node-input-payload").typedInput('value') === ''
+            ) {
+                $("#node-input-payload").typedInput('value','payload');
+            }
+			
+            $("#node-input-payload").on('change',function() {
+                if ($("#node-input-payload").typedInput('type') === 'msg' &&
+                    $("#node-input-payload").typedInput('value') === ''
+                ) {
+                    $("#node-input-payload").typedInput('value','payload');
+                }
+            });
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="IOPLUS 0-10V out">
+    <div class="form-row">
+        <label for="node-input-stack"><i class="fa fa-address-card-o"></i> Board Stack Level</label>
+        <input id="node-input-stack" class="ioplus-out-stack" placeholder="[msg.stack]" min=0 max=7 style="width:100px; height:16px;">
+    </div>   
+    <div class="form-row">
+        <label for="node-input-channel"><i class="fa fa-empire"></i> 0 - 10V output channel</label>
+        <input id="node-input-channel" class="ioplus-out-channel" placeholder="[msg.channel]" min=1 max=4 style="width:100px; height:16px;">
+    </div>
+    <div class="form-row">
+        <label for="node-input-payload"><i class="fa fa-envelope"></i> Payload</span></label>
+        <input type="text" id="node-input-payload" style="width:70%">
+        <input type="hidden" id="node-input-payloadType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+ 
+<script type="text/html" data-help-name="IOPLUS 0-10V out">
+    <p>Provides a connection to an Sequent Microsystems Home Automation Card 0-10V outputs </p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('IOPLUS 0-10V out', {
+        category: 'Sequent Microsystems',
+        defaults: {
+            name: {value:""},
+            stack: {value:"0"},
+            channel: {value:"1"},
+            payload: {value:"payload", required:false, validate: RED.validators.typedInput("payloadType")},
+            payloadType: {value:"msg"},
+        },
+        color:"#7a9da6",
+        inputs:1,
+        outputs:1,
+        icon: "dac.png",
+        align: "right",
+        label: function() { return this.name||'ioplus 0-10V out'; },
+        labelStyle: function() { return this.name?"node_label_italic":"";},
+        oneditprepare: function() {
+            if (this.payloadType == null) {
+                this.payloadType = "msg";
+            } else if (this.payloadType === 'string' ) {
+                this.payloadType = "str";
+            }
+
+            if (this.stack === undefined) {
+                $("#node-input-stack").val(1);
+            }
+            $("#node-input-stack").spinner({
+                min:0,
+                max:7
+            });
+            if (this.channel === undefined) {
+                $("#node-input-channel").val(1);
+            }
+            $("#node-input-channel").spinner({
+                min:1,
+                max:4
+            }); 
+            $("#node-input-payload").typedInput({
+                default: 'msg',
+                typeField: $("#node-input-payloadType"),
+                types:['msg','flow','global','str','num','bool','json','bin']
+            });
+            $("#node-input-payload").typedInput('type',this.payloadType);
+            $("#node-input-payloadType").val(this.payloadType);
+            if ($("#node-input-payload").typedInput('type') === 'msg' &&
+                $("#node-input-payload").typedInput('value') === ''
+            ) {
+                $("#node-input-payload").typedInput('value','payload');
+            }
+			
+            $("#node-input-payload").on('change',function() {
+                if ($("#node-input-payload").typedInput('type') === 'msg' &&
+                    $("#node-input-payload").typedInput('value') === ''
+                ) {
+                    $("#node-input-payload").typedInput('value','payload');
+                }
+            });
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="IOPLUS OPT cnt">
+    <div class="form-row">
+        <label for="node-input-stack"><i class="fa fa-address-card-o"></i> Board Stack Level</label>
+        <input id="node-input-stack" class="IOPLUS-out-stack" placeholder="[msg.stack]" min=0 max=7 style="width:100px; height:16px;">
+    </div>
+    
+    <div class="form-row">
+        <label for="node-input-channel"><i class="fa fa-empire"></i> Optocoupled input channel counter</label>
+        <input id="node-input-channel" class="ioplus-out-channel" placeholder="[msg.channel]" min=1 max=8 style="width:100px; height:16px;">
+    </div> 
+    <div class="form-row">
+        <label style="width:auto" for="node-input-rising"><i class="fa fa-arrow-right"></i> Enable <code>rising</code> edge counting: </label>
+        <input type="checkbox" checked id="node-input-rising" style="display:inline-block; width:auto; vertical-align:top;">
+    </div>
+    <div class="form-row">
+        <label style="width:auto" for="node-input-falling"><i class="fa fa-arrow-right"></i> Enable <code>falling</code> edge counting: </label>
+        <input type="checkbox" checked id="node-input-falling" style="display:inline-block; width:auto; vertical-align:top;">
+    </div>
+    <div class="form-row">
+        <label for="node-input-payload"><i class="fa fa-envelope"></i> Payload</span></label>
+        <input type="text" id="node-input-payload" style="width:70%">
+        <input type="hidden" id="node-input-payloadType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+ 
+<script type="text/html" data-help-name="IOPLUS OPT cnt">
+    <p>Provides a connection to an Sequent Microsystems Home Automation Card Optocoupler Inputs Counters.</p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('IOPLUS OPT cnt', {
+        category: 'Sequent Microsystems',
+        defaults: {
+            name: {value:""},
+            stack: {value:"0"},
+            channel: {value:"1"},
+            rising: {value: true},
+            falling: {value: true},
+            payload: {value:"payload", required:false, validate: RED.validators.typedInput("payloadType")},
+            payloadType: {value:"msg"},
+        },
+        color:"#7a9da6",
+        inputs:1,
+        outputs:1,
+        icon: "optocoupler.png",
+        align: "left",
+        label: function() { return this.name||'IOPLUS OPT cnt'; },
+        labelStyle: function() { return this.name?"node_label_italic":"";},
+        oneditprepare: function() {
+            if (this.payloadType == null) {
+                this.payloadType = "msg";
+            } else if (this.payloadType === 'string' ) {
+                this.payloadType = "str";
+            }
+
+            if (this.stack === undefined) {
+                $("#node-input-stack").val(1);
+            }
+            $("#node-input-stack").spinner({
+                min:0,
+                max:7
+            });
+            if (this.channel === undefined) {
+                $("#node-input-channel").val(1);
+            }
+            $("#node-input-channel").spinner({
+                min:1,
+                max:8
+            }); 
+           
+            $("#node-input-payload").typedInput({
+                default: 'msg',
+                typeField: $("#node-input-payloadType"),
+                types:['msg','flow','global','str','num','bool','json','bin']
+            });
+            $("#node-input-payload").typedInput('type',this.payloadType);
+            $("#node-input-payloadType").val(this.payloadType);
+            if ($("#node-input-payload").typedInput('type') === 'msg' &&
+                $("#node-input-payload").typedInput('value') === ''
+            ) {
+                $("#node-input-payload").typedInput('value','payload');
+            }
+			
+            $("#node-input-payload").on('change',function() {
+                if ($("#node-input-payload").typedInput('type') === 'msg' &&
+                    $("#node-input-payload").typedInput('value') === ''
+                ) {
+                    $("#node-input-payload").typedInput('value','payload');
+                }
+            });
+        }
+    });
+</script>
+
+
+<script type="text/html" data-template-name="IOPLUS OPT in">
+    <div class="form-row">
+        <label for="node-input-stack"><i class="fa fa-address-card-o"></i> Board Stack Level</label>
+        <input id="node-input-stack" class="ioplus-out-stack" placeholder="[msg.stack]" min=0 max=7 style="width:100px; height:16px;">
+    </div>
+    <div class="form-row">
+        <label for="node-input-channel"><i class="fa fa-empire"></i> Optocoupled input channel</label>
+        <input id="node-input-channel" class="ioplus-out-channel" placeholder="[msg.channel]" min=1 max=8 style="width:100px; height:16px;">
+    </div> 
+    <div class="form-row">
+        <label for="node-input-payload"><i class="fa fa-envelope"></i> Payload</span></label>
+        <input type="text" id="node-input-payload" style="width:70%">
+        <input type="hidden" id="node-input-payloadType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+ 
+<script type="text/html" data-help-name="IOPLUS OPT in">
+    <p>Provides a connection to an Sequent Microsystems Home Automation Card Optocoupled Inputs.</p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('IOPLUS OPT in', {
+        category: 'Sequent Microsystems',
+        defaults: {
+            name: {value:""},
+            stack: {value:"0"},
+            channel: {value:"1"},
+            payload: {value:"payload", required:false, validate: RED.validators.typedInput("payloadType")},
+            payloadType: {value:"msg"},
+        },
+        color:"#7a9da6",
+        inputs:1,
+        outputs:1,
+        icon: "optocoupler.png",
+        align: "left",
+        label: function() { return this.name||'IOPLUS OPT in'; },
+        labelStyle: function() { return this.name?"node_label_italic":"";},
+        oneditprepare: function() {
+            if (this.payloadType == null) {
+                this.payloadType = "msg";
+            } else if (this.payloadType === 'string' ) {
+                this.payloadType = "str";
+            }
+
+            if (this.stack === undefined) {
+                $("#node-input-stack").val(1);
+            }
+            $("#node-input-stack").spinner({
+                min:0,
+                max:7
+            });
+            if (this.channel === undefined) {
+                $("#node-input-channel").val(1);
+            }
+            $("#node-input-channel").spinner({
+                min:1,
+                max:8
+            }); 
+           
+            $("#node-input-payload").typedInput({
+                default: 'msg',
+                typeField: $("#node-input-payloadType"),
+                types:['msg','flow','global','str','num','bool','json','bin']
+            });
+            $("#node-input-payload").typedInput('type',this.payloadType);
+            $("#node-input-payloadType").val(this.payloadType);
+            if ($("#node-input-payload").typedInput('type') === 'msg' &&
+                $("#node-input-payload").typedInput('value') === ''
+            ) {
+                $("#node-input-payload").typedInput('value','payload');
+            }
+			
+            $("#node-input-payload").on('change',function() {
+                if ($("#node-input-payload").typedInput('type') === 'msg' &&
+                    $("#node-input-payload").typedInput('value') === ''
+                ) {
+                    $("#node-input-payload").typedInput('value','payload');
+                }
+            });
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="IOPLUS OD out">
+    <div class="form-row">
+        <label for="node-input-stack"><i class="fa fa-address-card-o"></i> Board Stack Level</label>
+        <input id="node-input-stack" class="ioplus-out-stack" placeholder="[msg.stack]" min=0 max=7 style="width:100px; height:16px;">
+    </div>   
+    <div class="form-row">
+        <label for="node-input-channel"><i class="fa fa-empire"></i> Open-Drain PWM output channel</label>
+        <input id="node-input-channel" class="ioplus-out-channel" placeholder="[msg.channel]" min=1 max=4 style="width:100px; height:16px;">
+    </div>
+    <div class="form-row">
+        <label for="node-input-payload"><i class="fa fa-envelope"></i> Payload</span></label>
+        <input type="text" id="node-input-payload" style="width:70%">
+        <input type="hidden" id="node-input-payloadType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+ 
+<script type="text/html" data-help-name="IOPLUS OD out">
+    <p>Provides a connection to an Sequent Microsystems Home Automation Card Open-Drain PWM outputs. You can set the PWM duty-cycle from 0% to 100% thru message payload </p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('IOPLUS OD out', {
+        category: 'Sequent Microsystems',
+        defaults: {
+            name: {value:""},
+            stack: {value:"0"},
+            channel: {value:"1"},
+            payload: {value:"payload", required:false, validate: RED.validators.typedInput("payloadType")},
+            payloadType: {value:"msg"},
+        },
+		color:'#7a9da6',
+        inputs:1,
+        outputs:1,
+        icon: "mosfet.png",
+        align: "right",
+        label: function() { return this.name||'ioplus OD out'; },
+        labelStyle: function() { return this.name?"node_label_italic":"";},
+        oneditprepare: function() {
+            if (this.payloadType == null) {
+                this.payloadType = "msg";
+            } else if (this.payloadType === 'string' ) {
+                this.payloadType = "str";
+            }
+
+            if (this.stack === undefined) {
+                $("#node-input-stack").val(1);
+            }
+            $("#node-input-stack").spinner({
+                min:0,
+                max:7
+            });
+            if (this.channel === undefined) {
+                $("#node-input-channel").val(1);
+            }
+            $("#node-input-channel").spinner({
+                min:1,
+                max:4
+            }); 
+            $("#node-input-payload").typedInput({
+                default: 'msg',
+                typeField: $("#node-input-payloadType"),
+                types:['msg','flow','global','str','num','bool','json','bin']
+            });
+            $("#node-input-payload").typedInput('type',this.payloadType);
+            $("#node-input-payloadType").val(this.payloadType);
+            if ($("#node-input-payload").typedInput('type') === 'msg' &&
+                $("#node-input-payload").typedInput('value') === ''
+            ) {
+                $("#node-input-payload").typedInput('value','payload');
+            }
+			
+            $("#node-input-payload").on('change',function() {
+                if ($("#node-input-payload").typedInput('type') === 'msg' &&
+                    $("#node-input-payload").typedInput('value') === ''
+                ) {
+                    $("#node-input-payload").typedInput('value','payload');
+                }
+            });
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="IOPLUS ADC in">
+       <div class="form-row">
+        <label for="node-input-stack"><i class="fa fa-address-card-o"></i> Board Stack Level</label>
+        <input id="node-input-stack" class="ioplus-out-stack" placeholder="[msg.stack]" min=0 max=7 style="width:100px; height:16px;">
+    </div>
+    
+    <div class="form-row">
+        <label for="node-input-channel"><i class="fa fa-empire"></i> ADC input channel</label>
+        <input id="node-input-channel" class="ioplus-out-channel" placeholder="[msg.channel]" min=1 max=4 style="width:100px; height:16px;">
+    </div>
+    <div class="form-row">
+        <label for="node-input-payload"><i class="fa fa-envelope"></i> Payload</span></label>
+        <input type="text" id="node-input-payload" style="width:70%">
+        <input type="hidden" id="node-input-payloadType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+ 
+<script type="text/html" data-help-name="IOPLUS ADC in">
+    <p>Provides a connection to an Sequent Microsystems Home Automation Card ADC inputs </p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('IOPLUS ADC in', {
+        category: 'Sequent Microsystems',
+        defaults: {
+            name: {value:""},
+            stack: {value:"0"},
+            channel: {value:"1"},
+            payload: {value:"payload", required:false, validate: RED.validators.typedInput("payloadType")},
+            payloadType: {value:"msg"},
+        },
+        color:"#7a9da6",
+        inputs:1,
+        outputs:1,
+        icon: "adc.png",
+        align: "left",
+        label: function() { return this.name||'ioplus adc in'; },
+        labelStyle: function() { return this.name?"node_label_italic":"";},
+        oneditprepare: function() {
+            if (this.payloadType == null) {
+                this.payloadType = "msg";
+            } else if (this.payloadType === 'string' ) {
+                this.payloadType = "str";
+            }
+
+            if (this.stack === undefined) {
+                $("#node-input-stack").val(1);
+            }
+            $("#node-input-stack").spinner({
+                min:0,
+                max:7
+            });
+            if (this.channel === undefined) {
+                $("#node-input-channel").val(1);
+            }
+            $("#node-input-channel").spinner({
+                min:1,
+                max:4
+            }); 
+            $("#node-input-payload").typedInput({
+                default: 'msg',
+                typeField: $("#node-input-payloadType"),
+                types:['msg','flow','global','str','num','bool','json','bin']
+            });
+            $("#node-input-payload").typedInput('type',this.payloadType);
+            $("#node-input-payloadType").val(this.payloadType);
+            if ($("#node-input-payload").typedInput('type') === 'msg' &&
+                $("#node-input-payload").typedInput('value') === ''
+            ) {
+                $("#node-input-payload").typedInput('value','payload');
+            }
+			
+            $("#node-input-payload").on('change',function() {
+                if ($("#node-input-payload").typedInput('type') === 'msg' &&
+                    $("#node-input-payload").typedInput('value') === ''
+                ) {
+                    $("#node-input-payload").typedInput('value','payload');
+                }
+            });
+        }
+    });
+</script>

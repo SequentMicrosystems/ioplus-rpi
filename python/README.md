@@ -2,7 +2,7 @@
 
 # libioplus
 
-This is the python library to control the [Home Automation Stackable Card for Raspberry Pi](https://sequentmicrosystems.com/product/raspberry-pi-home-automation-card/).
+This is the python library to control the [Home Automation Stackable Card for Raspberry Pi](https://sequentmicrosystems.com/products/raspberry-pi-home-automation-card).
 
 ## Install
 

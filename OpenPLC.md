@@ -57,4 +57,4 @@ import libioplus
 
 Now you can access relays, optocoupled digital inputs, voltage in and voltage outputs thru PLC variables, below you see screen capture with monitoring our variables:
 
-(res/Monitorung.jpg)
+(res/Monitoring.jpg)

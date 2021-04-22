@@ -22,7 +22,7 @@ You will see a text editor with some python code written in it, here some things
 import libioplus
 ```
 
- - Read some inputs in _update_inputs()_ funtion. We read all teh 8 optocoupled digital inputs and all 8 analog inputs and update PLC variables:
+ - Read some inputs in _update_inputs()_ funtion. We read all the 8 optocoupled digital inputs and all 8 analog inputs and update PLC variables:
  ```python
  def update_inputs():
     #Read optocoupled inputs

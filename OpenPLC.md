@@ -54,7 +54,7 @@ import libioplus
             val = 10000
         libioplus.setDacV(0, i+1, val/1000.0)
  ```
-In the main loop, the only thing you might whant to do is to adjust the PSM cycle time.
+In the main loop, the only thing you might want to do is to adjust the PSM cycle time.
 Now you can access relays, optocoupled digital inputs, the voltage in and voltage outputs thru PLC variables, below you see screen capture with monitoring our variables:
 
 ![ioplus-rpi](res/Monitoring.jpg)

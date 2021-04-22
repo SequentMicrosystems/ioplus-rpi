@@ -2,7 +2,7 @@
 
 # OpenPLC guide for ioplus
 
-The OpenPLC team recently develop a new hardware layer called Python SubModule or just simply PSM. The description is this:
+The OpenPLC team recently developed a new hardware layer called Python SubModule or just simply PSM. The description is this:
 _"PSM is a powerful bridge that connects OpenPLC core to Python. You can use PSM to write your own OpenPLC driver in pure Python."_
 
 We start to test this new cool feature and we share with you the setup process:
@@ -15,8 +15,8 @@ We start to test this new cool feature and we share with you the setup process:
 ~/ioplus-rpi/python/ioplus$ sudo python3 setup.py install
 ```
 2) Install OpenPLC on Raspberry, instructions [here](https://www.openplcproject.com/runtime/raspberry-pi/)
-3) In the  OpenPLC web server go to Hardware tab and select _Python on Linux (PSM)_.
-You will see a text editor with some python code writed in it, here some things to do for controlling the Home Automation Card:
+3) In the  OpenPLC web server go to the Hardware tab and select _Python on Linux (PSM)_.
+You will see a text editor with some python code written in it, here some things to do for controlling the Home Automation Card:
 - Import the library:
 ```python
 import libioplus
@@ -54,7 +54,7 @@ import libioplus
             val = 10000
         libioplus.setDacV(0, i+1, val/1000.0)
  ```
-
-Now you can access relays, optocoupled digital inputs, voltage in and voltage outputs thru PLC variables, below you see screen capture with monitoring our variables:
+In the main loop, the only thing you might whant to do is to adjust the PSM cycle time.
+Now you can access relays, optocoupled digital inputs, the voltage in and voltage outputs thru PLC variables, below you see screen capture with monitoring our variables:
 
 ![ioplus-rpi](res/Monitoring.jpg)

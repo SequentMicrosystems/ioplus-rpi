@@ -43,3 +43,5 @@ If you clone the repository any update can be made with the following commands:
 ## [Node-Red](node-red/README.md) example based on exec node.
 
 ## [Node-Red nodes](node-red-contrib-sm-ioplus)
+
+## [OpenPLC Usage](OpenPLC.md)

@@ -1,6 +1,6 @@
 [![ioplus-rpi](res/sequent.jpg)](https://www.sequentmicrosystems.com)
 
-# OpenPLC guide for Home Automation Card for Raspberry Pi
+# OpenPLC guide for Home Automation Card
 
 The OpenPLC team recently developed a new hardware layer called Python SubModule or just simply PSM. The description is this:
 _"PSM is a powerful bridge that connects OpenPLC core to Python. You can use PSM to write your own OpenPLC driver in pure Python."_

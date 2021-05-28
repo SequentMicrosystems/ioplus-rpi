@@ -50,7 +50,7 @@ Set the output state of one relay
 
 **channel** - Relay nr [1..8]
 
-**value** - 0 = relay on, 1 = relay off
+**value** - 1 = relay on, 0 = relay off
 
 
 ### getRelayCh(stack, channel)

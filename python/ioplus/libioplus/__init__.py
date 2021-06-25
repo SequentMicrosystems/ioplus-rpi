@@ -14,12 +14,21 @@ def getAdcV(stack, channel):
         raise ValueError('Invalid channel number')
     ADC_VAL_MV_ADD = 24
     bus = smbus.SMBus(1)
+    dataA = 5000
+    data = 6000
+    retry = 10
     try:
-        data = bus.read_word_data(DEVICE_ADDRESS + stack, ADC_VAL_MV_ADD + 2 * (channel - 1));
-        val = data / 1000.0;
+        while (dataA & 0xfffc) != (data & 0xfffc) and retry > 0:
+            dataA = data
+            retry -= 1
+            data = bus.read_word_data(DEVICE_ADDRESS + stack, ADC_VAL_MV_ADD + 2 * (channel - 1))
+        val = data / 1000.0
     except Exception as e:
-        val = -1
+        bus.close()
+        raise Exception(e)
     bus.close()
+    if retry == 0:
+        raise Exception('Spurious read detected')
     return val
 
 
@@ -31,12 +40,21 @@ def getAdcRaw(stack, channel):
         raise ValueError('Invalid channel number')
     ADC_VAL_RAW_ADD = 8
     bus = smbus.SMBus(1)
+    dataA = 5000
+    data = 6000
+    retry = 10
     try:
-        data = bus.read_word_data(DEVICE_ADDRESS + stack, ADC_VAL_RAW_ADD + 2 * (channel - 1));
+        while (dataA & 0xfffc) != (data & 0xfffc) and retry > 0:
+            dataA = data
+            retry -= 1
+            data = bus.read_word_data(DEVICE_ADDRESS + stack, ADC_VAL_RAW_ADD + 2 * (channel - 1));
         val = data;
     except Exception as e:
-        val = -1
+        bus.close()
+        raise Exception(e)
     bus.close()
+    if retry == 0:
+        raise Exception('Spurious read detected')
     return val
 
 
@@ -128,13 +146,21 @@ def getRelays(stack):
     if stack < 0 or stack > 7:
         raise ValueError('Invalid stack level')
     bus = smbus.SMBus(1)
-    RELAY_VAL_ADD = 0;
+    RELAY_VAL_ADD = 0
+    valA = 257
+    val = 258
+    retry = 10
     try:
-        val = bus.read_word_data(DEVICE_ADDRESS + stack, RELAY_VAL_ADD)
+        while valA != val and retry > 0:
+            valA = val
+            retry -= 1
+            val = bus.read_byte_data(DEVICE_ADDRESS + stack, RELAY_VAL_ADD)
     except Exception as e:
         bus.close()
-        return -1
+        raise Exception(e)
     bus.close()
+    if retry == 0:
+        raise Exception('Spurious read detected')
     return val
 
 
@@ -156,12 +182,20 @@ def getOptoCh(stack, channel):
         raise ValueError('Invalid channel number')
     bus = smbus.SMBus(1)
     OPTO_IN_ADD = 3
+    valA = 257
+    val = 258
+    retry = 10
     try:
+      while valA != val and retry > 0:
+        valA = val
+        retry -= 1
         val = bus.read_byte_data(DEVICE_ADDRESS + stack, OPTO_IN_ADD)
     except Exception as e:
         bus.close()
-        return -1
+        raise Exception(e)
     bus.close()
+    if retry == 0:
+        raise Exception('Spurious read detected')
     if val & (1 << (channel - 1)):
         return 1
     else:
@@ -173,12 +207,20 @@ def getOpto(stack):
         raise ValueError('Invalid stack level')
     bus = smbus.SMBus(1)
     OPTO_IN_ADD = 3
+    valA = 257
+    val = 258
+    retry = 10
     try:
-        val = bus.read_byte_data(DEVICE_ADDRESS + stack, OPTO_IN_ADD)
+        while valA != val and retry > 0:
+            valA = val
+            retry -= 1
+            val = bus.read_byte_data(DEVICE_ADDRESS + stack, OPTO_IN_ADD)
     except Exception as e:
         bus.close()
-        return -1
+        raise Exception(e)
     bus.close()
+    if retry == 0:
+        raise Exception('Spurious read detected')
     return val
 
 
@@ -193,7 +235,7 @@ def setGpioDir(stack, dir):
         bus.write_byte_data(DEVICE_ADDRESS + stack, GPIO_DIR_ADD, dir)
     except Exception as e:
         bus.close()
-        return -1
+        raise Exception(e)
     bus.close()
     return 1
 
@@ -203,12 +245,20 @@ def getGpio(stack):
         raise ValueError('Invalid stack level')
     bus = smbus.SMBus(1)
     GPIO_VAL_ADD = 4
+    valA = 257
+    val = 258
+    retry = 10
     try:
-        val = bus.read_byte_data(DEVICE_ADDRESS + stack, GPIO_VAL_ADD)
+        while valA != val and retry > 0:
+            valA = val
+            retry -= 1
+            val = bus.read_byte_data(DEVICE_ADDRESS + stack, GPIO_VAL_ADD)
     except Exception as e:
         bus.close()
-        return -1
+        raise Exception(e)
     bus.close()
+    if retry == 0:
+        raise Exception('Spurious read detected')
     return val
 
 

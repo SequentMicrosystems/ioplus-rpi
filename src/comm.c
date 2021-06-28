@@ -40,7 +40,6 @@
 #define I2C_SMBUS_BLOCK_MAX	512	/* As specified in SMBus standard */
 #define I2C_SMBUS_I2C_BLOCK_MAX	512	/* Not specified but we use same structure */
 
-
 int i2cSetup(int addr)
 {
 	int file;
@@ -114,6 +113,103 @@ int i2cMem8Write(int dev, int add, uint8_t* buff, int size)
 	}
 	return 0;
 }
+#define SPURIOUS_RETRY	10 
+int i2cReadByteAS(int dev, int add, uint8_t* val)
+{
+	uint8_t read = 255;
+	int valA = 256;
+	int retry = SPURIOUS_RETRY;
+
+	while ( (read != valA) && (retry > 0))
+	{
+		retry--;
+		valA = read;
+		if (0 != i2cMem8Read(dev, add, &read, 1))
+		{
+			return -1;
+		}
+	}
+	if (retry == 0)
+	{
+		return -1;
+	}
+	*val = read;
+	return 0;
+}
+
+int i2cReadWordAS(int dev, int add, uint16_t* val)
+{
+	uint8_t buff[2];
+	uint16_t read = 50000;
+	int valA = 60000;
+	int retry = SPURIOUS_RETRY;
+	
+	while ( ((read & 0xfffc) != (valA & 0xfffc)) && (retry > 0))
+	{
+		retry--;
+		valA = read;
+		if (0 != i2cMem8Read(dev, add, buff, 2))
+		{
+			return -1;
+		}
+		memcpy(&read, buff, 2);
+	}
+	if (retry == 0)
+	{
+		return -1;
+	}
+	*val = read;
+	return 0;
+}
 
 
+int i2cReadDWordAS(int dev, int add, uint32_t* val)
+{
+	uint8_t buff[4];
+	uint32_t read = 50000;
+	uint32_t valA = 60000;
+	int retry = SPURIOUS_RETRY;
+	
+	while ( ((read & 0xfffffffc) != (valA & 0xfffffffc)) && (retry > 0))
+	{
+		retry--;
+		valA = read;
+		if (0 != i2cMem8Read(dev, add, buff, 4))
+		{
+			return -1;
+		}
+		memcpy(&read, buff, 4);
+	}
+	if (retry == 0)
+	{
+		return -1;
+	}
+	*val = read;
+	return 0;
+}
 
+
+int i2cReadIntAS(int dev, int add, int* val)
+{
+	uint8_t buff[4];
+	int read = 50000;
+	int valA = 60000;
+	int retry = SPURIOUS_RETRY;
+	
+	while ( ((read & 0xfffffffc) != (valA & 0xfffffffc)) && (retry > 0))
+	{
+		retry--;
+		valA = read;
+		if (0 != i2cMem8Read(dev, add, buff, 4))
+		{
+			return -1;
+		}
+		memcpy(&read, buff, 4);
+	}
+	if (retry == 0)
+	{
+		return -1;
+	}
+	*val = read;
+	return 0;
+}

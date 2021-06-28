@@ -22,7 +22,7 @@ int optoChGet(int dev, u8 channel, OutStateEnumType *state)
 		return ERROR;
 	}
 
-	if (FAIL == i2cMem8Read(dev, I2C_MEM_OPTO_IN_ADD, buff, 1))
+	if (FAIL == i2cReadByteAS(dev, I2C_MEM_OPTO_IN_ADD, buff))
 	{
 		return ERROR;
 	}
@@ -46,7 +46,8 @@ int optoGet(int dev, int *val)
 	{
 		return ERROR;
 	}
-	if (FAIL == i2cMem8Read(dev, I2C_MEM_OPTO_IN_ADD, buff, 1))
+
+	if (FAIL == i2cReadByteAS(dev, I2C_MEM_OPTO_IN_ADD, buff))
 	{
 		return ERROR;
 	}
@@ -124,21 +125,18 @@ int optoEdgeSet(int dev, u8 channel, u8 val)
 
 int optoCountGet(int dev, u8 channel, u32 *val)
 {
-	u8 buff[4];
+	if ( (channel < CHANNEL_NR_MIN) || (channel > OPTO_IN_CH_NR_MAX)
+		|| (NULL == val))
+	{
+		return ERROR;
+	}
 
-	if ( (channel < CHANNEL_NR_MIN) || (channel > OPTO_IN_CH_NR_MAX) || (NULL ==
-		val))
+	if (OK
+		!= i2cReadDWordAS(dev,
+			I2C_MEM_OPTO_EDGE_COUNT_ADD + COUNTER_SIZE * (channel - 1), (uint32_t *)val))
 	{
 		return ERROR;
 	}
-	if (FAIL
-		== i2cMem8Read(dev,
-			I2C_MEM_OPTO_EDGE_COUNT_ADD + COUNTER_SIZE * (channel - 1), buff,
-			COUNTER_SIZE))
-	{
-		return ERROR;
-	}
-	memcpy(val, buff, COUNTER_SIZE);
 	return OK;
 }
 
@@ -193,7 +191,7 @@ int optoEncStateRead(int dev, u8 channel, u8 *val)
 	{
 		return ERROR;
 	}
-	if (FAIL == i2cMem8Read(dev, I2C_MEM_OPTO_ENC_ENABLE_ADD, &aux, 1))
+	if (OK != i2cReadByteAS(dev, I2C_MEM_OPTO_ENC_ENABLE_ADD, &aux))
 	{
 		return ERROR;
 	}
@@ -207,20 +205,18 @@ int optoEncStateRead(int dev, u8 channel, u8 *val)
 
 int optoEncGetCnt(int dev, u8 channel, int *val)
 {
-	u8 buff[4];
-	s32 count = 0;
-
 	if ( (channel < CHANNEL_NR_MIN) || (channel > OPTO_IN_CH_NR_MAX / 2)
 		|| (NULL == val))
 	{
 		return ERROR;
 	}
-	if (FAIL == i2cMem8Read(dev, I2C_MEM_OPTO_ENC_COUNT_ADD + COUNTER_SIZE * (channel - 1) , buff, COUNTER_SIZE))
+
+	if (OK
+		!= i2cReadIntAS(dev,
+			I2C_MEM_OPTO_ENC_COUNT_ADD + COUNTER_SIZE * (channel - 1), val))
 	{
 		return ERROR;
 	}
-	memcpy(&count, buff, 4);
-	*val = count;
 	return OK;
 }
 
@@ -470,13 +466,13 @@ int doOptoEncoderWrite(int argc, char *argv[])
 		return ARG_ERR;
 	}
 	state = (u8)atoi(argv[4]);
-	if(OK != optoEncStateWrite(dev, pin, state))
+	if (OK != optoEncStateWrite(dev, pin, state))
 	{
 		printf("Fail to write encoder State\n");
 		return ERROR;
 	}
 
-return OK;
+	return OK;
 }
 
 int doOptoEncoderRead(int argc, char *argv[])
@@ -514,7 +510,6 @@ int doOptoEncoderRead(int argc, char *argv[])
 	return OK;
 }
 
-
 int doOptoEncoderCntRead(int argc, char *argv[])
 {
 	int pin = 0;
@@ -530,7 +525,7 @@ int doOptoEncoderCntRead(int argc, char *argv[])
 	if (argc == 4)
 	{
 		pin = atoi(argv[3]);
-		if ( (pin < CHANNEL_NR_MIN) || (pin > OPTO_IN_CH_NR_MAX /2))
+		if ( (pin < CHANNEL_NR_MIN) || (pin > OPTO_IN_CH_NR_MAX / 2))
 		{
 			printf("Optocoupled encoder number value out of range!\n");
 			return ARG_ERR;

@@ -55,7 +55,7 @@ int gpioChGet(int dev, u8 channel, OutStateEnumType *state)
 		return ERROR;
 	}
 
-	if (FAIL == i2cMem8Read(dev, I2C_MEM_GPIO_VAL_ADD, buff, 1))
+	if (OK != i2cReadByteAS(dev, I2C_MEM_GPIO_VAL_ADD, buff))
 	{
 		return ERROR;
 	}
@@ -88,7 +88,8 @@ int gpioGet(int dev, int *val)
 	{
 		return ERROR;
 	}
-	if (FAIL == i2cMem8Read(dev, I2C_MEM_GPIO_VAL_ADD, buff, 1))
+
+	if (OK != i2cReadByteAS(dev, I2C_MEM_GPIO_VAL_ADD, buff))
 	{
 		return ERROR;
 	}
@@ -106,11 +107,11 @@ int gpioChDirSet(int dev, u8 channel, u8 state)
 		printf("Invalid GPIO nr!\n");
 		return ERROR;
 	}
-	if (FAIL == i2cMem8Read(dev, I2C_MEM_GPIO_DIR_ADD, buff, 1))
-	{
-		return FAIL;
-	}
 
+	if (OK != i2cReadByteAS(dev, I2C_MEM_GPIO_DIR_ADD, buff))
+	{
+		return ERROR;
+	}
 	switch (state)
 	{
 	case 0: //output
@@ -146,7 +147,8 @@ int gpioDirGet(int dev, int *val)
 	{
 		return ERROR;
 	}
-	if (FAIL == i2cMem8Read(dev, I2C_MEM_GPIO_DIR_ADD, buff, 1))
+
+	if (OK != i2cReadByteAS(dev, I2C_MEM_GPIO_DIR_ADD, buff))
 	{
 		return ERROR;
 	}
@@ -156,7 +158,6 @@ int gpioDirGet(int dev, int *val)
 
 int gpioEdgeGet(int dev, u8 channel, u8 *val)
 {
-	u8 buff[2];
 	u8 rising = 0;
 	u8 falling = 0;
 
@@ -165,12 +166,14 @@ int gpioEdgeGet(int dev, u8 channel, u8 *val)
 	{
 		return ERROR;
 	}
-	if (FAIL == i2cMem8Read(dev, I2C_MEM_GPIO_EXT_IT_RISING_ADD, buff, 2))
+	if (OK != i2cReadByteAS(dev, I2C_MEM_GPIO_EXT_IT_RISING_ADD, &rising))
 	{
 		return ERROR;
 	}
-	rising = buff[0];
-	falling = buff[1];
+	if (OK != i2cReadByteAS(dev, I2C_MEM_GPIO_EXT_IT_RISING_ADD + 1, &falling))
+	{
+		return ERROR;
+	}
 	*val = ( ( (1 << (channel - 1)) & rising) == 0 ? 0 : 1);
 	*val += ( ( (1 << (channel - 1)) & falling) == 0 ? 0 : 2);
 	return OK;
@@ -219,20 +222,17 @@ int gpioEdgeSet(int dev, u8 channel, u8 val)
 
 int gpioCountGet(int dev, u8 channel, u32 *val)
 {
-	u8 buff[4];
-
 	if ( (channel < CHANNEL_NR_MIN) || (channel > GPIO_CH_NR_MAX))
 	{
 		return ERROR;
 	}
-	if (FAIL
-		== i2cMem8Read(dev,
-			I2C_MEM_GPIO_EDGE_COUNT_ADD + COUNTER_SIZE * (channel - 1), buff,
-			COUNTER_SIZE))
+
+	if (OK
+		!= i2cReadDWordAS(dev,
+			I2C_MEM_GPIO_EDGE_COUNT_ADD + COUNTER_SIZE * (channel - 1), val))
 	{
 		return ERROR;
 	}
-	memcpy(val, buff, COUNTER_SIZE);
 	return OK;
 }
 
@@ -243,13 +243,12 @@ int gpioCountReset(int dev, u8 channel)
 	{
 		return ERROR;
 	}
-	if(FAIL == i2cMem8Write(dev, I2C_MEM_GPIO_CNT_RST_ADD, &channel, 1))
+	if (FAIL == i2cMem8Write(dev, I2C_MEM_GPIO_CNT_RST_ADD, &channel, 1))
 	{
 		return ERROR;
 	}
 	return OK;
 }
-
 
 int doGpioRead(int argc, char *argv[])
 {
@@ -404,7 +403,6 @@ int doGpioWrite(int argc, char *argv[])
 	}
 	return OK;
 }
-
 
 int doGpioDirRead(int argc, char *argv[])
 {
@@ -616,7 +614,6 @@ int doGpioCntRead(int argc, char *argv[])
 	}
 	return OK;
 }
-
 
 int doGpioEdgeRead(int argc, char *argv[])
 {

@@ -338,8 +338,10 @@ int doBoard(int argc, char *argv[])
 		printf("Fail to read board info!\n");
 		exit(1);
 	}
-	printf("Hardware %02d.%02d, Firmware %02d.%02d, CPU temperature %d C, voltage %0.2f V\n",
-		(int)buff[0], (int)buff[1], (int)buff[2], (int)buff[3], temperature, voltage);
+	printf(
+		"Hardware %02d.%02d, Firmware %02d.%02d, CPU temperature %d C, voltage %0.2f V\n",
+		(int)buff[0], (int)buff[1], (int)buff[2], (int)buff[3], temperature,
+		voltage);
 	return OK;
 }
 #ifdef HW_DEBUG
@@ -463,11 +465,14 @@ int relayChGet(int dev, u8 channel, OutStateEnumType *state)
 		return ERROR;
 	}
 
-	if (FAIL == i2cMem8Read(dev, I2C_MEM_RELAY_VAL_ADD, buff, 1))
+//	if (FAIL == i2cMem8Read(dev, I2C_MEM_RELAY_VAL_ADD, buff, 1))
+//	{
+//		return ERROR;
+//	}
+	if (OK != i2cReadByteAS(dev, I2C_MEM_RELAY_VAL_ADD, buff))
 	{
 		return ERROR;
 	}
-
 	if (buff[0] & (1 << (channel - 1)))
 	{
 		*state = ON;
@@ -496,7 +501,7 @@ int relayGet(int dev, int *val)
 	{
 		return ERROR;
 	}
-	if (FAIL == i2cMem8Read(dev, I2C_MEM_RELAY_VAL_ADD, buff, 1))
+	if (OK != i2cReadByteAS(dev, I2C_MEM_RELAY_VAL_ADD, buff))
 	{
 		return ERROR;
 	}
@@ -975,7 +980,6 @@ const CliCmdType CMD_OPTO_CNT_RESET =
 		"",
 		"\tExample:		ioplus 0 optcntrst 2; Reset contor of opto input #2 on Board #0\n"};
 
-
 const CliCmdType CMD_OPTO_ENC_WRITE =
 	{
 		"optencwr",
@@ -1018,10 +1022,6 @@ const CliCmdType CMD_OPTO_ENC_CNT_RESET =
 
 int odGet(int dev, int ch, float *val)
 {
-	u8 buff[2] =
-	{
-		0,
-		0};
 	u16 raw = 0;
 
 	if ( (ch < CHANNEL_NR_MIN) || (ch > OD_CH_NR_MAX))
@@ -1029,13 +1029,11 @@ int odGet(int dev, int ch, float *val)
 		printf("Open drain channel out of range!\n");
 		return ERROR;
 	}
-	if (OK
-		!= i2cMem8Read(dev, I2C_MEM_OD_PWM_VAL_RAW_ADD + 2 * (ch - 1), buff, 2))
+	if (OK != i2cReadWordAS(dev, I2C_MEM_OD_PWM_VAL_RAW_ADD + 2 * (ch - 1), &raw))
 	{
 		printf("Fail to read!\n");
 		return ERROR;
 	}
-	memcpy(&raw, buff, 2);
 	*val = 100 * (float)raw / OD_PWM_VAL_MAX;
 	return OK;
 }
@@ -1175,10 +1173,6 @@ int doOdWrite(int argc, char *argv[])
 
 int dacGet(int dev, int ch, float *val)
 {
-	u8 buff[2] =
-	{
-		0,
-		0};
 	u16 raw = 0;
 
 	if ( (ch < CHANNEL_NR_MIN) || (ch > DAC_CH_NR_MAX))
@@ -1186,12 +1180,11 @@ int dacGet(int dev, int ch, float *val)
 		printf("DAC channel out of range!\n");
 		return ERROR;
 	}
-	if (OK != i2cMem8Read(dev, I2C_MEM_DAC_VAL_MV_ADD + 2 * (ch - 1), buff, 2))
+	if (OK != i2cReadWordAS(dev, I2C_MEM_DAC_VAL_MV_ADD + 2 * (ch - 1), &raw))
 	{
 		printf("Fail to read!\n");
 		return ERROR;
 	}
-	memcpy(&raw, buff, 2);
 	*val = (float)raw / 1000;
 	return OK;
 }
@@ -1330,10 +1323,6 @@ int doDacWrite(int argc, char *argv[])
 
 int adcGet(int dev, int ch, float *val)
 {
-	u8 buff[2] =
-	{
-		0,
-		0};
 	u16 raw = 0;
 
 	if ( (ch < CHANNEL_NR_MIN) || (ch > ADC_CH_NR_MAX))
@@ -1341,12 +1330,11 @@ int adcGet(int dev, int ch, float *val)
 		printf("ADC channel out of range!\n");
 		return ERROR;
 	}
-	if (OK != i2cMem8Read(dev, I2C_MEM_ADC_VAL_MV_ADD + 2 * (ch - 1), buff, 2))
+	if (OK != i2cReadWordAS(dev, I2C_MEM_ADC_VAL_MV_ADD + 2 * (ch - 1), &raw))
 	{
 		printf("Fail to read!\n");
 		return ERROR;
 	}
-	memcpy(&raw, buff, 2);
 	*val = (float)raw / 1000;
 	return OK;
 }
@@ -1404,7 +1392,7 @@ void getCalStat(int dev)
 	u8 buff[2];
 
 	busyWait(100);
-	if (OK != i2cMem8Read(dev, I2C_MEM_CALIB_STATUS, buff, 1))
+	if (OK != i2cReadByteAS(dev, I2C_MEM_CALIB_STATUS, buff))
 	{
 		printf("Fail to read calibration status!\n");
 		exit(1);
@@ -1775,10 +1763,6 @@ int doWdtGetPeriod(int argc, char *argv[])
 {
 	int dev = 0;
 	u16 period;
-	u8 buff[2] =
-	{
-		0,
-		0};
 
 	dev = doBoardInit(atoi(argv[1]));
 	if (dev <= 0)
@@ -1788,12 +1772,11 @@ int doWdtGetPeriod(int argc, char *argv[])
 
 	if (argc == 3)
 	{
-		if (OK != i2cMem8Read(dev, I2C_MEM_WDT_INTERVAL_GET_ADD, buff, 2))
+		if (OK != i2cReadWordAS(dev, I2C_MEM_WDT_INTERVAL_GET_ADD, &period))
 		{
 			printf("Fail to read watchdog period!\n");
 			exit(1);
 		}
-		memcpy(&period, buff, 2);
 		printf("%d\n", (int)period);
 	}
 	else
@@ -1868,10 +1851,6 @@ int doWdtGetInitPeriod(int argc, char *argv[])
 {
 	int dev = 0;
 	u16 period;
-	u8 buff[2] =
-	{
-		0,
-		0};
 
 	dev = doBoardInit(atoi(argv[1]));
 	if (dev <= 0)
@@ -1881,12 +1860,11 @@ int doWdtGetInitPeriod(int argc, char *argv[])
 
 	if (argc == 3)
 	{
-		if (OK != i2cMem8Read(dev, I2C_MEM_WDT_INIT_INTERVAL_GET_ADD, buff, 2))
+		if (OK != i2cReadWordAS(dev, I2C_MEM_WDT_INIT_INTERVAL_GET_ADD, &period))
 		{
 			printf("Fail to read watchdog period!\n");
 			exit(1);
 		}
-		memcpy(&period, buff, 2);
 		printf("%d\n", (int)period);
 	}
 	else
@@ -1964,12 +1942,6 @@ int doWdtGetOffPeriod(int argc, char *argv[])
 {
 	int dev = 0;
 	u32 period;
-	u8 buff[4] =
-	{
-		0,
-		0,
-		0,
-		0};
 
 	dev = doBoardInit(atoi(argv[1]));
 	if (dev <= 0)
@@ -1979,13 +1951,11 @@ int doWdtGetOffPeriod(int argc, char *argv[])
 
 	if (argc == 3)
 	{
-		if (OK
-			!= i2cMem8Read(dev, I2C_MEM_WDT_POWER_OFF_INTERVAL_GET_ADD, buff, 4))
+		if (OK != i2cReadDWordAS(dev, I2C_MEM_WDT_POWER_OFF_INTERVAL_GET_ADD, &period))
 		{
 			printf("Fail to read watchdog period!\n");
 			exit(1);
 		}
-		memcpy(&period, buff, 4);
 		printf("%d\n", (int)period);
 	}
 	else

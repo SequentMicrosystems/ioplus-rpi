@@ -1,8 +1,8 @@
 # node-red-contrib-sm-ioplus
 
-This is the node-red node to control Sequent Microsystems [Home Automation](https://sequentmicrosystems.com/shop/home-automation/raspberry-pi-home-automation-card/) card.
+This is the node-red node to control Sequent Microsystems [Home Automation](https://sequentmicrosystems.com/products/raspberry-pi-home-automation-card) card.
 
-## Install
+## Manual Installation
 
 Clone or update the repository, follow the instrutions fron the [first page.](https://github.com/SequentMicrosystems/ioplus-rpi)
 

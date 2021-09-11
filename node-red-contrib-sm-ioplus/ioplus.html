@@ -207,6 +207,9 @@
  
 <script type="text/html" data-help-name="IOPLUS OPT cnt">
     <p>Provides a connection to an Sequent Microsystems Home Automation Card Optocoupler Inputs Counters.</p>
+    
+    <p>You can specify the card stack level in the edit dialog box or programaticaly with the input message <code>msg.stack</code></p>
+    <p>You can specify the channel number in the edit dialog box or programaticaly with the input message <code>msg.channel</code></p>
 </script>
 
 <script type="text/javascript">
@@ -282,7 +285,7 @@
     </div>
     <div class="form-row">
         <label for="node-input-channel"><i class="fa fa-empire"></i> Optocoupled input channel</label>
-        <input id="node-input-channel" class="ioplus-out-channel" placeholder="[msg.channel]" min=1 max=8 style="width:100px; height:16px;">
+        <input id="node-input-channel" class="ioplus-out-channel" placeholder="[msg.channel]" min=0 max=8 style="width:100px; height:16px;">
     </div> 
     <div class="form-row">
         <label for="node-input-payload"><i class="fa fa-envelope"></i> Payload</span></label>
@@ -297,6 +300,9 @@
  
 <script type="text/html" data-help-name="IOPLUS OPT in">
     <p>Provides a connection to an Sequent Microsystems Home Automation Card Optocoupled Inputs.</p>
+    <p>Each message received by the node generate a <code>msg.payload</code> with the state of a opto input channel from 8 if <code>channel</code> is [1..8] or all inputs state if <code>channel</code> is 0 </p>
+    <p>You can specify the card stack level in the edit dialog box or programaticaly with the input message <code>msg.stack</code></p>
+    <p>You can specify the channel number in the edit dialog box or programaticaly with the input message <code>msg.channel</code></p>
 </script>
 
 <script type="text/javascript">
@@ -334,7 +340,7 @@
                 $("#node-input-channel").val(1);
             }
             $("#node-input-channel").spinner({
-                min:1,
+                min:0,
                 max:8
             }); 
            

@@ -453,11 +453,11 @@ module.exports = function(RED) {
             }
             hwAdd += stack;
             
-            if(channel < 1){
-              channel = 1;
+            if(channel < 0){
+              channel = 0;
             }
-            if(channel > 4){
-              channel = 4
+            if(channel > 8){
+              channel = 8
             }
             try {
                                 
@@ -474,11 +474,16 @@ module.exports = function(RED) {
                     } 
                     else{
                         //node.log("Opto val read " + res );
-                        if ((res & (1 << (channel - 1))) != 0) {
-                          msg.payload = true;
+                        if(channel == 0){
+                            msg.payload = res;
                         }
                         else{
-                          msg.payload = false;
+                            if ((res & (1 << (channel - 1))) != 0) {
+                              msg.payload = true;
+                            }
+                            else{
+                              msg.payload = false;
+                            }
                         }
                         node.send(msg);
                     }

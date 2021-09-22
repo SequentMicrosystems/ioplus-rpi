@@ -153,8 +153,8 @@ module.exports = function(RED) {
                 if(channel < 1){
                   channel = 1;
                 }
-                if(channel > 4){
-                  channel = 4;
+                if(channel > 8){
+                  channel = 8;
                 }
                 
                 if (this.payloadType == null) {

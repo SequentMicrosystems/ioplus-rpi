@@ -462,7 +462,7 @@
     
     <div class="form-row">
         <label for="node-input-channel"><i class="fa fa-empire"></i> ADC input channel</label>
-        <input id="node-input-channel" class="ioplus-out-channel" placeholder="[msg.channel]" min=1 max=4 style="width:100px; height:16px;">
+        <input id="node-input-channel" class="ioplus-out-channel" placeholder="[msg.channel]" min=1 max=8 style="width:100px; height:16px;">
     </div>
     <div class="form-row">
         <label for="node-input-payload"><i class="fa fa-envelope"></i> Payload</span></label>
@@ -515,7 +515,7 @@
             }
             $("#node-input-channel").spinner({
                 min:1,
-                max:4
+                max:8
             }); 
             $("#node-input-payload").typedInput({
                 default: 'msg',

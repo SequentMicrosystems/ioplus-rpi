@@ -124,6 +124,11 @@ typedef enum
 } OutStateEnumType;
 
 int doBoardInit(int stack);
+u8 getHwVer(void);
+int adcGet(int dev, int ch, float *val);
+int odSet(int dev, int ch, float val);
+int dacSet(int dev, int ch, float val);
+
 
 int gpioChSet(int dev, u8 channel, OutStateEnumType state);
 int gpioChGet(int dev, u8 channel, OutStateEnumType *state);
@@ -147,5 +152,7 @@ int doOptoEncoderWrite(int argc, char *argv[]);
 int doOptoEncoderRead(int argc, char *argv[]);
 int doOptoEncoderCntRead(int argc, char *argv[]);
 int doOptoEncoderCntReset(int argc, char *argv[]);
+
+int doLoopbackTest(int argc, char *argv[]);
 
 #endif //IOPLUS_H_

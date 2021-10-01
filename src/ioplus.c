@@ -21,9 +21,11 @@
 
 #define VERSION_BASE	(int)1
 #define VERSION_MAJOR	(int)2
-#define VERSION_MINOR	(int)3
+#define VERSION_MINOR	(int)4
 
 #define UNUSED(X) (void)X      /* To avoid gcc/g++ warnings */
+
+u8 gHwVer = 0;
 
 char *warranty =
 	"	       Copyright (c) 2016-2020 Sequent Microsystems\n"
@@ -83,7 +85,7 @@ void usage(void)
 		}
 		i++;
 	}
-	printf("Where: <id> = Board level id = 0..7\n");
+	printf("Where: <stack> = Board level id = 0..7\n");
 	printf("Type ioplus -h <command> for more help\n");
 }
 
@@ -104,12 +106,18 @@ int doBoardInit(int stack)
 	{
 		return ERROR;
 	}
-	if (ERROR == i2cMem8Read(dev, I2C_MEM_REVISION_MAJOR_ADD, buff, 1))
+	if (ERROR == i2cMem8Read(dev, I2C_MEM_REVISION_HW_MAJOR_ADD, buff, 1))
 	{
 		printf("IO-PLUS id %d not detected\n", stack);
 		return ERROR;
 	}
+	gHwVer = buff[0];
 	return dev;
+}
+
+u8 getHwVer(void)
+{
+	return gHwVer;
 }
 
 int boardCheck(int stack)
@@ -516,8 +524,8 @@ const CliCmdType CMD_RELAY_WRITE =
 	2,
 	&doRelayWrite,
 	"\trelwr:		Set relays On/Off\n",
-	"\tUsage:		ioplus <id> relwr <channel> <on/off>\n",
-	"\tUsage:		ioplus <id> relwr <value>\n",
+	"\tUsage:		ioplus <stack> relwr <channel> <on/off>\n",
+	"\tUsage:		ioplus <stack> relwr <value>\n",
 	"\tExample:		ioplus 0 relwr 2 1; Set Relay #2 on Board #0 On\n"};
 
 int doRelayWrite(int argc, char *argv[])
@@ -636,8 +644,8 @@ const CliCmdType CMD_RELAY_READ =
 	2,
 	&doRelayRead,
 	"\trelrd:		Read relays status\n",
-	"\tUsage:		ioplus <id> relrd <channel>\n",
-	"\tUsage:		ioplus <id> relrd\n",
+	"\tUsage:		ioplus <stack> relrd <channel>\n",
+	"\tUsage:		ioplus <stack> relrd\n",
 	"\tExample:		ioplus 0 relrd 2; Read Status of Relay #2 on Board #0\n"};
 
 int doRelayRead(int argc, char *argv[])
@@ -701,7 +709,7 @@ const CliCmdType CMD_TEST =
 	2,
 	&doRelayTest,
 	"\treltest:	Turn ON and OFF the relays until press a key\n",
-	"\tUsage:		ioplus <id> reltest\n",
+	"\tUsage:		ioplus <stack> reltest\n",
 	"",
 	"\tExample:		ioplus 0 reltest\n"};
 
@@ -856,8 +864,8 @@ const CliCmdType CMD_GPIO_WRITE =
 	2,
 	&doGpioWrite,
 	"\tgpiowr:		Set gpio pins On/Off\n",
-	"\tUsage:		ioplus <id> gpiowr <channel> <on/off>\n",
-	"\tUsage:		ioplus <id> gpiowr <value>\n",
+	"\tUsage:		ioplus <stack> gpiowr <channel> <on/off>\n",
+	"\tUsage:		ioplus <stack> gpiowr <value>\n",
 	"\tExample:		ioplus 0 gpiowr 2 1; Set GPIO pin #2 on Board #0 to 1 logic\n"};
 
 const CliCmdType CMD_GPIO_READ =
@@ -866,8 +874,8 @@ const CliCmdType CMD_GPIO_READ =
 	2,
 	&doGpioRead,
 	"\tgpiord:		Read gpio status\n",
-	"\tUsage:		ioplus <id> gpiord <channel>\n",
-	"\tUsage:		ioplus <id> gpiord\n",
+	"\tUsage:		ioplus <stack> gpiord <channel>\n",
+	"\tUsage:		ioplus <stack> gpiord\n",
 	"\tExample:		ioplus 0 gpiord 2; Read Status of Gpio pin #2 on Board #0\n"};
 
 const CliCmdType CMD_GPIO_DIR_WRITE =
@@ -876,8 +884,8 @@ const CliCmdType CMD_GPIO_DIR_WRITE =
 	2,
 	&doGpioDirWrite,
 	"\tgpiodirwr:	Set gpio pins direction I/O  0- output; 1-input\n",
-	"\tUsage:		ioplus <id> gpiodirwr <channel> <out/in> \n",
-	"\tUsage:		ioplus <id> gpiodirwr <value>\n",
+	"\tUsage:		ioplus <stack> gpiodirwr <channel> <out/in> \n",
+	"\tUsage:		ioplus <stack> gpiodirwr <value>\n",
 	"\tExample:	ioplus 0 gpiodirwr 2 1; Set GPIO pin #2 on Board #0 as input\n"};
 
 const CliCmdType CMD_GPIO_DIR_READ =
@@ -886,8 +894,8 @@ const CliCmdType CMD_GPIO_DIR_READ =
 		2,
 		&doGpioDirRead,
 		"\tgpiodirrd:	Read gpio direction 0 - output; 1 - input\n",
-		"\tUsage:		ioplus <id> gpiodirrd <pin>\n",
-		"\tUsage:		ioplus <id> gpiodirrd\n",
+		"\tUsage:		ioplus <stack> gpiodirrd <pin>\n",
+		"\tUsage:		ioplus <stack> gpiodirrd\n",
 		"\tExample:		ioplus 0 gpiodirrd 2; Read direction of Gpio pin #2 on Board #0\n"};
 
 const CliCmdType CMD_GPIO_EDGE_WRITE =
@@ -896,7 +904,7 @@ const CliCmdType CMD_GPIO_EDGE_WRITE =
 		2,
 		&doGpioEdgeWrite,
 		"\tgpioedgewr:	Set gpio pin counting edges  0- count disable; 1-count rising edges; 2 - count falling edges; 3 - count both edges\n",
-		"\tUsage:		ioplus <id> gpioedgewr <channel> <edges> \n",
+		"\tUsage:		ioplus <stack> gpioedgewr <channel> <edges> \n",
 		"",
 		"\tExample:	ioplus 0 gpioedgewr 2 1; Set GPIO pin #2 on Board #0 to count rising edges\n"};
 
@@ -906,7 +914,7 @@ const CliCmdType CMD_GPIO_EDGE_READ =
 		2,
 		&doGpioEdgeRead,
 		"\tgpioEdgerd:	Read gpio counting edges 0 - none; 1 - rising; 2 - falling; 3 - both\n",
-		"\tUsage:		ioplus <id> gpioedgerd <pin>\n",
+		"\tUsage:		ioplus <stack> gpioedgerd <pin>\n",
 		"",
 		"\tExample:		ioplus 0 gpioedgerd 2; Read counting edges of Gpio pin #2 on Board #0\n"};
 
@@ -916,7 +924,7 @@ const CliCmdType CMD_GPIO_CNT_READ =
 	2,
 	&doGpioCntRead,
 	"\tgpiocntrd:	Read gpio edges count for one GPIO imput pin\n",
-	"\tUsage:		ioplus <id> gpiocntrd <channel>\n",
+	"\tUsage:		ioplus <stack> gpiocntrd <channel>\n",
 	"",
 	"\tExample:		ioplus 0 gpiocntrd 2; Read contor of Gpio pin #2 on Board #0\n"};
 
@@ -926,7 +934,7 @@ const CliCmdType CMD_GPIO_CNT_RESET =
 		2,
 		&doGpioCntRst,
 		"\tgpiocntrst:	Reset gpio edges count for one GPIO imput pin\n",
-		"\tUsage:		ioplus <id> gpiocntrst <channel>\n",
+		"\tUsage:		ioplus <stack> gpiocntrst <channel>\n",
 		"",
 		"\tExample:		ioplus 0 gpiocntrst 2; Reset contor of Gpio pin #2 on Board #0\n"};
 
@@ -936,8 +944,8 @@ const CliCmdType CMD_OPTO_READ =
 		2,
 		&doOptoRead,
 		"\toptrd:		Read optocoupled inputs status\n",
-		"\tUsage:		ioplus <id> optrd <channel>\n",
-		"\tUsage:		ioplus <id> optrd\n",
+		"\tUsage:		ioplus <stack> optrd <channel>\n",
+		"\tUsage:		ioplus <stack> optrd\n",
 		"\tExample:		ioplus 0 optrd 2; Read Status of Optocoupled input ch #2 on Board #0\n"};
 
 const CliCmdType CMD_OPTO_EDGE_WRITE =
@@ -946,7 +954,7 @@ const CliCmdType CMD_OPTO_EDGE_WRITE =
 		2,
 		&doOptoEdgeWrite,
 		"\toptedgewr:	Set optocoupled channel counting edges  0- count disable; 1-count rising edges; 2 - count falling edges; 3 - count both edges\n",
-		"\tUsage:		ioplus <id> optedgewr <channel> <edges> \n",
+		"\tUsage:		ioplus <stack> optedgewr <channel> <edges> \n",
 		"",
 		"\tExample:	ioplus 0 optedgewr 2 1; Set Optocoupled channel #2 on Board #0 to count rising edges\n"};
 
@@ -956,7 +964,7 @@ const CliCmdType CMD_OPTO_EDGE_READ =
 		2,
 		&doOptoEdgeRead,
 		"\toptedgerd:	Read optocoupled counting edges 0 - none; 1 - rising; 2 - falling; 3 - both\n",
-		"\tUsage:		ioplus <id> optedgerd <pin>\n",
+		"\tUsage:		ioplus <stack> optedgerd <pin>\n",
 		"",
 		"\tExample:		ioplus 0 optedgerd 2; Read counting edges of optocoupled channel #2 on Board #0\n"};
 
@@ -966,7 +974,7 @@ const CliCmdType CMD_OPTO_CNT_READ =
 		2,
 		&doOptoCntRead,
 		"\toptcntrd:	Read potocoupled inputs edges count for one pin\n",
-		"\tUsage:		ioplus <id> optcntrd <channel>\n",
+		"\tUsage:		ioplus <stack> optcntrd <channel>\n",
 		"",
 		"\tExample:		ioplus 0 optcntrd 2; Read contor of opto input #2 on Board #0\n"};
 
@@ -976,7 +984,7 @@ const CliCmdType CMD_OPTO_CNT_RESET =
 		2,
 		&doOptoCntReset,
 		"\toptcntrst:	Reset optocoupled inputs edges count for one pin\n",
-		"\tUsage:		ioplus <id> optcntrst <channel>\n",
+		"\tUsage:		ioplus <stack> optcntrst <channel>\n",
 		"",
 		"\tExample:		ioplus 0 optcntrst 2; Reset contor of opto input #2 on Board #0\n"};
 
@@ -986,9 +994,9 @@ const CliCmdType CMD_OPTO_ENC_WRITE =
 		2,
 		&doOptoEncoderWrite,
 		"\toptencwr:	Enable / Disable optocoupled quadrature encoder, encoder 1 connected to opto ch1 and 2, encoder 2 on ch3 and 4 ... \n",
-		"\tUsage:		ioplus <id> optencwr <channel> <0/1> \n",
+		"\tUsage:		ioplus <stack> optencwr <channel> <0/1> \n",
 		"",
-		"\tExample:	ioplus 0 optencwr 2 1; Enable Optocoupled channel encoder  #2  on Board \n"};
+		"\tExample:	ioplus 0 optencwr 2 1; Enable encoder on opto channel 3/4  on Board stack level 0\n"};
 
 const CliCmdType CMD_OPTO_ENC_READ =
 	{
@@ -996,7 +1004,7 @@ const CliCmdType CMD_OPTO_ENC_READ =
 		2,
 		&doOptoEncoderRead,
 		"\toptencrd:	Read optocoupled quadrature encoder state 0- disabled 1 - enabled\n",
-		"\tUsage:		ioplus <id> optencrd <pin>\n",
+		"\tUsage:		ioplus <stack> optencrd <channel>\n",
 		"",
 		"\tExample:		ioplus 0 optencrd 2; Read state of optocoupled encoder channel #2 on Board #0\n"};
 
@@ -1006,7 +1014,7 @@ const CliCmdType CMD_OPTO_ENC_CNT_READ =
 		2,
 		&doOptoEncoderCntRead,
 		"\toptcntencrd:	Read potocoupled encoder count for one channel\n",
-		"\tUsage:		ioplus <id> optcntencrd <channel>\n",
+		"\tUsage:		ioplus <stack> optcntencrd <channel>\n",
 		"",
 		"\tExample:		ioplus 0 optcntencrd 2; Read contor of opto encoder #2 on Board #0\n"};
 
@@ -1016,7 +1024,7 @@ const CliCmdType CMD_OPTO_ENC_CNT_RESET =
 		2,
 		&doOptoEncoderCntReset,
 		"\toptcntencrst:	Reset optocoupled encoder count \n",
-		"\tUsage:		ioplus <id> optcntencrst <channel>\n",
+		"\tUsage:		ioplus <stack> optcntencrst <channel>\n",
 		"",
 		"\tExample:		ioplus 0 optcntencrst 2; Reset contor of encoder #2 on Board #0\n"};
 
@@ -1077,7 +1085,7 @@ const CliCmdType CMD_OD_READ =
 		2,
 		&doOdRead,
 		"\todrd:		Read open drain output pwm value (0% - 100%)\n",
-		"\tUsage:		ioplus <id> odrd <channel>\n",
+		"\tUsage:		ioplus <stack> odrd <channel>\n",
 		"",
 		"\tExample:		ioplus 0 odrd 2; Read pwm value of open drain channel #2 on Board #0\n"};
 
@@ -1125,7 +1133,7 @@ const CliCmdType CMD_OD_WRITE =
 		2,
 		&doOdWrite,
 		"\todwr:		Write open drain output pwm value (0% - 100%), Warning: This function change the output of the coresponded DAC channel\n",
-		"\tUsage:		ioplus <id> odwr <channel> <value>\n",
+		"\tUsage:		ioplus <stack> odwr <channel> <value>\n",
 		"",
 		"\tExample:		ioplus 0 odwr 2 12.5; Write pwm 12.5% to open drain channel #2 on Board #0\n"};
 
@@ -1227,7 +1235,7 @@ const CliCmdType CMD_DAC_READ =
 		2,
 		&doDacRead,
 		"\tdacrd:		Read DAC voltage value (0 - 10V)\n",
-		"\tUsage:		ioplus <id> dacrd <channel>\n",
+		"\tUsage:		ioplus <stack> dacrd <channel>\n",
 		"",
 		"\tExample:		ioplus 0 dacrd 2; Read the voltage on DAC channel #2 on Board #0\n"};
 
@@ -1275,7 +1283,7 @@ const CliCmdType CMD_DAC_WRITE =
 		2,
 		&doDacWrite,
 		"\tdacwr:		Write DAC output voltage value (0..10V), Warning: This function change the output of the coresponded open-drain channel\n",
-		"\tUsage:		ioplus <id> dacwr <channel> <value>\n",
+		"\tUsage:		ioplus <stack> dacwr <channel> <value>\n",
 		"",
 		"\tExample:		ioplus 0 dacwr 2 2.5; Write 2.5V to DAC channel #2 on Board #0\n"};
 
@@ -1346,7 +1354,7 @@ const CliCmdType CMD_ADC_READ =
 		2,
 		&doAdcRead,
 		"\tadcrd:		Read ADC input voltage value (0 - 3.3V)\n",
-		"\tUsage:		ioplus <id> adcrd <channel>\n",
+		"\tUsage:		ioplus <stack> adcrd <channel>\n",
 		"",
 		"\tExample:		ioplus 0 adcrd 2; Read the voltage input on ADC channel #2 on Board #0\n"};
 
@@ -1421,7 +1429,7 @@ const CliCmdType CMD_ADC_CAL =
 		2,
 		&doAdcCal,
 		"\tadccal:		Calibrate one ADC channel, the calibration must be done in 2 points at min 2V apart\n",
-		"\tUsage:		ioplus <id> adccal <channel> <value>\n",
+		"\tUsage:		ioplus <stack> adccal <channel> <value>\n",
 		"",
 		"\tExample:		ioplus 0 adccal 2 0.5; Calibrate the voltage input on ADC channel #2 on Board #0 at 0.5V\n"};
 
@@ -1485,7 +1493,7 @@ const CliCmdType CMD_ADC_CAL_RST =
 		2,
 		&doAdcCalRst,
 		"\tadccalrst:	Reset the calibration for one ADC channel\n",
-		"\tUsage:		ioplus <id> adccalrst <channel>\n",
+		"\tUsage:		ioplus <stack> adccalrst <channel>\n",
 		"",
 		"\tExample:		ioplus 0 adccalrst 2 ; Reset the calibration on ADC channel #2 on Board #0 at factory default\n"};
 
@@ -1542,7 +1550,7 @@ const CliCmdType CMD_DAC_CAL =
 		2,
 		&doDacCal,
 		"\tdaccal:		Calibrate one DAC channel, the calibration must be done in 2 points at min 5V apart\n",
-		"\tUsage:		ioplus <id> daccal <channel> <value>\n",
+		"\tUsage:		ioplus <stack> daccal <channel> <value>\n",
 		"",
 		"\tExample:		ioplus 0 daccal 2 0.5; Calibrate the voltage outputs on DAC channel #2 on Board #0 at 0.5V\n"};
 
@@ -1606,7 +1614,7 @@ const CliCmdType CMD_DAC_CAL_RST =
 		2,
 		&doDacCalRst,
 		"\tdaccalrst:	Reset calibration for one DAC channel\n",
-		"\tUsage:		ioplus <id> daccalrst <channel>\n",
+		"\tUsage:		ioplus <stack> daccalrst <channel>\n",
 		"",
 		"\tExample:		ioplus 0 daccalrst 2; Reset calibration data on DAC channel #2 on Board #0 at factory default\n"};
 
@@ -1664,7 +1672,7 @@ const CliCmdType CMD_WDT_RELOAD =
 		2,
 		&doWdtReload,
 		"\twdtr:		Reload the watchdog timer and enable the watchdog if is disabled\n",
-		"\tUsage:		ioplus <id> wdtr\n",
+		"\tUsage:		ioplus <stack> wdtr\n",
 		"",
 		"\tExample:		ioplus 0 wdtr; Reload the watchdog timer on Board #0 with the period \n"};
 
@@ -1706,7 +1714,7 @@ const CliCmdType CMD_WDT_SET_PERIOD =
 		2,
 		&doWdtSetPeriod,
 		"\twdtpwr:		Set the watchdog period in seconds, reload command must be issue in this interval to prevent Raspberry Pi power off\n",
-		"\tUsage:		ioplus <id> wdtpwr <val> \n",
+		"\tUsage:		ioplus <stack> wdtpwr <val> \n",
 		"",
 		"\tExample:		ioplus 0 wdtpwr 10; Set the watchdog timer period on Board #0 at 10 seconds \n"};
 
@@ -1755,7 +1763,7 @@ const CliCmdType CMD_WDT_GET_PERIOD =
 		2,
 		&doWdtGetPeriod,
 		"\twdtprd:		Get the watchdog period in seconds, reload command must be issue in this interval to prevent Raspberry Pi power off\n",
-		"\tUsage:		ioplus <id> wdtprd \n",
+		"\tUsage:		ioplus <stack> wdtprd \n",
 		"",
 		"\tExample:		ioplus 0 wdtprd; Get the watchdog timer period on Board #0\n"};
 
@@ -1794,7 +1802,7 @@ const CliCmdType CMD_WDT_SET_INIT_PERIOD =
 		2,
 		&doWdtSetInitPeriod,
 		"\twdtipwr:	Set the watchdog initial period in seconds, This period is loaded after power cycle, giving Raspberry time to boot\n",
-		"\tUsage:		ioplus <id> wdtipwr <val> \n",
+		"\tUsage:		ioplus <stack> wdtipwr <val> \n",
 		"",
 		"\tExample:		ioplus 0 wdtipwr 10; Set the watchdog timer initial period on Board #0 at 10 seconds \n"};
 
@@ -1843,7 +1851,7 @@ const CliCmdType CMD_WDT_GET_INIT_PERIOD =
 		2,
 		&doWdtGetInitPeriod,
 		"\twdtiprd:	Get the watchdog initial period in seconds. This period is loaded after power cycle, giving Raspberry time to boot\n",
-		"\tUsage:		ioplus <id> wdtiprd \n",
+		"\tUsage:		ioplus <stack> wdtiprd \n",
 		"",
 		"\tExample:		ioplus 0 wdtiprd; Get the watchdog timer initial period on Board #0\n"};
 
@@ -1882,7 +1890,7 @@ const CliCmdType CMD_WDT_SET_OFF_PERIOD =
 		2,
 		&doWdtSetOffPeriod,
 		"\twdtopwr:	Set the watchdog off period in seconds (max 48 days), This is the time that watchdog mantain Raspberry turned off \n",
-		"\tUsage:		ioplus <id> wdtopwr <val> \n",
+		"\tUsage:		ioplus <stack> wdtopwr <val> \n",
 		"",
 		"\tExample:		ioplus 0 wdtopwr 10; Set the watchdog off interval on Board #0 at 10 seconds \n"};
 
@@ -1934,7 +1942,7 @@ const CliCmdType CMD_WDT_GET_OFF_PERIOD =
 		2,
 		&doWdtGetOffPeriod,
 		"\twdtoprd:	Get the watchdog off period in seconds (max 48 days), This is the time that watchdog mantain Raspberry turned off \n",
-		"\tUsage:		ioplus <id> wdtoprd \n",
+		"\tUsage:		ioplus <stack> wdtoprd \n",
 		"",
 		"\tExample:		ioplus 0 wdtoprd; Get the watchdog off period on Board #0\n"};
 
@@ -1969,264 +1977,264 @@ int doWdtGetOffPeriod(int argc, char *argv[])
 int doLoopbackTest(int argc, char *argv[]);
 const CliCmdType CMD_IO_TEST =
 {
-	"iotst",
+	"iotest",
 	2,
 	&doLoopbackTest,
-	"\tiotst:		Test the ioplus with loopback card inserted \n",
-	"\tUsage:		ioplus <id> iotst\n",
-	"",
-	"\tExample:		ioplus 0 iotst; Run the tests \n"};
+	"\tiotest:		Test the ioplus with loopback card inserted \n",
+	"\tUsage:		ioplus <stack> iotest\n",
+	"\tUsage:		ioplus <stack> iotest <test type>\n",
+	"\tExample:		ioplus 0 iotest; Run the tests \n"};
 
-int doLoopbackTest(int argc, char *argv[])
-{
-	int dev = 0;
-	u8 i = 0;
-	OutStateEnumType state;
-	int pass = 0;
-	int total = 0;
-	float val = 0;
-	const u8 t1OptoCh[4] =
-	{
-		2,
-		1,
-		4,
-		3};
-	const u8 t2OptoCh[4] =
-	{
-		8,
-		7,
-		6,
-		5};
-	const u8 adcCh1[4] =
-	{
-		2,
-		5,
-		1,
-		7};
-	const u8 adcCh2[4] =
-	{
-		4,
-		6,
-		3,
-		8};
-
-	dev = doBoardInit(atoi(argv[1]));
-	if (dev <= 0)
-	{
-		exit(1);
-	}
-
-	if (argc == 3)
-	{
-		//GPIO -> OPTO
-//Opto ON		
-		for (i = 0; i < 4; i++)
-		{
-			if (OK != gpioChDirSet(dev, i + 1, 0))
-			{
-				printf("Fail to set GPIO direction!\n");
-				exit(1);
-			}
-			if (OK != gpioChSet(dev, i + 1, 0))
-			{
-				printf("Fail to set GPIO !\n");
-				exit(1);
-			}
-			busyWait(50);
-			if (OK != optoChGet(dev, t1OptoCh[i], &state))
-			{
-				printf("Fail to read opto!\n");
-				exit(1);
-			}
-			total++;
-			if (state == 1)
-			{
-				printf("Gpio %d to Opto %d Turn ON  PASS\n", (int)i + 1,
-					(int)t1OptoCh[i]);
-				pass++;
-			}
-			else
-			{
-				printf("Gpio %d to Opto %d Turn ON  FAIL!\n", (int)i + 1,
-					(int)t1OptoCh[i]);
-			}
-//Opto OFF
-			if (OK != gpioChDirSet(dev, i + 1, 1))
-			{
-				printf("Fail to set GPIO direction!\n");
-				exit(1);
-			}
-
-			busyWait(50);
-			if (OK != optoChGet(dev, t1OptoCh[i], &state))
-			{
-				printf("Fail to read opto!\n");
-				exit(1);
-			}
-			total++;
-			if (state == 0)
-			{
-				printf("Gpio %d to Opto %d Turn OFF  PASS\n", (int)i + 1,
-					(int)t1OptoCh[i]);
-				pass++;
-			}
-			else
-			{
-				printf("Gpio %d to Opto %d Turn OFF  FAIL!\n", (int)i + 1,
-					(int)t1OptoCh[i]);
-			}
-		}
-
-		//Open drain -> OPTO
-//Opto ON		
-		for (i = 0; i < 4; i++)
-		{
-			if (OK != odSet(dev, i + 1, 100))
-			{
-				printf("Fail to set Open drains output!\n");
-				exit(1);
-			}
-			busyWait(250);
-			if (OK != optoChGet(dev, t2OptoCh[i], &state))
-			{
-				printf("Fail to read opto!\n");
-				exit(1);
-			}
-			total++;
-			if (state == 1)
-			{
-				printf("OD %d to Opto %d Turn ON  PASS\n", (int)i + 1,
-					(int)t2OptoCh[i]);
-				pass++;
-			}
-			else
-			{
-				printf("OD %d to Opto %d Turn ON  FAIL!\n", (int)i + 1,
-					(int)t2OptoCh[i]);
-			}
-//Opto OFF
-			if (OK != odSet(dev, i + 1, 0))
-			{
-				printf("Fail to set Open drains output!\n");
-				exit(1);
-			}
-			busyWait(250);
-			if (OK != optoChGet(dev, t2OptoCh[i], &state))
-			{
-				printf("Fail to read opto!\n");
-				exit(1);
-			}
-			total++;
-			if (state == 0)
-			{
-				printf("OD %d to Opto %d Turn OFF  PASS\n", (int)i + 1,
-					(int)t2OptoCh[i]);
-				pass++;
-			}
-			else
-			{
-				printf("OD %d to Opto %d Turn OFF  FAIL!\n", (int)i + 1,
-					(int)t2OptoCh[i]);
-			}
-		}
-		//DAC -> ADC
-//DAC 2V		
-		for (i = 0; i < 4; i++)
-		{
-
-			if (OK != dacSet(dev, i + 1, 2))
-			{
-				printf("Fail to set DAC output!\n");
-				exit(1);
-			}
-			busyWait(250);
-			if (OK != adcGet(dev, adcCh1[i], &val))
-			{
-				printf("Fail to read adc\n");
-				exit(1);
-			}
-			total++;
-			if ( (val < 2.1) && (val > 1.9))
-			{
-				printf("DAC %d to ADC %d @2V  PASS\n", (int)i + 1, (int)adcCh1[i]);
-				pass++;
-			}
-			else
-			{
-				printf("DAC %d to ADC %d @2V  FAIL!\n", (int)i + 1, (int)adcCh1[i]);
-			}
-
-			if (OK != adcGet(dev, adcCh2[i], &val))
-			{
-				printf("Fail to read adc\n");
-				exit(1);
-			}
-			total++;
-			if ( (val < 2.1) && (val > 1.9))
-			{
-				printf("DAC %d to ADC %d @2V  PASS\n", (int)i + 1, (int)adcCh2[i]);
-				pass++;
-			}
-			else
-			{
-				printf("DAC %d to ADC %d @2V  FAIL!\n", (int)i + 1, (int)adcCh2[i]);
-			}
-
-			if (OK != dacSet(dev, i + 1, 0))
-			{
-				printf("Fail to set DAC output!\n");
-				exit(1);
-			}
-			busyWait(250);
-			if (OK != adcGet(dev, adcCh1[i], &val))
-			{
-				printf("Fail to read adc\n");
-				exit(1);
-			}
-			total++;
-			if ( (val < 0.1) && (val > -0.1))
-			{
-				printf("DAC %d to ADC %d @0V  PASS\n", (int)i + 1, (int)adcCh1[i]);
-				pass++;
-			}
-			else
-			{
-				printf("DAC %d to ADC %d @0V  FAIL!\n", (int)i + 1, (int)adcCh1[i]);
-			}
-
-			if (OK != adcGet(dev, adcCh2[i], &val))
-			{
-				printf("Fail to read adc\n");
-				exit(1);
-			}
-			total++;
-			if ( (val < 0.1) && (val > -0.1))
-			{
-				printf("DAC %d to ADC %d @0V  PASS\n", (int)i + 1, (int)adcCh2[i]);
-				pass++;
-			}
-			else
-			{
-				printf("DAC %d to ADC %d @0V  FAIL!\n", (int)i + 1, (int)adcCh2[i]);
-			}
-
-		}
-		if (pass == total)
-		{
-			printf("\n === All tests PASS === \n");
-		}
-		else
-		{
-			printf("\n === Tests FAIL/from -> %d/%d !=== \n", total - pass, total);
-		}
-	}
-	else
-	{
-		printf("Invalid params number:\n %s", CMD_IO_TEST.usage1);
-		exit(1);
-	}
-	return OK;
-}
+//int doLoopbackTest(int argc, char *argv[])
+//{
+//	int dev = 0;
+//	u8 i = 0;
+//	OutStateEnumType state;
+//	int pass = 0;
+//	int total = 0;
+//	float val = 0;
+//	const u8 t1OptoCh[4] =
+//	{
+//		2,
+//		1,
+//		4,
+//		3};
+//	const u8 t2OptoCh[4] =
+//	{
+//		8,
+//		7,
+//		6,
+//		5};
+//	const u8 adcCh1[4] =
+//	{
+//		2,
+//		5,
+//		1,
+//		7};
+//	const u8 adcCh2[4] =
+//	{
+//		4,
+//		6,
+//		3,
+//		8};
+//
+//	dev = doBoardInit(atoi(argv[1]));
+//	if (dev <= 0)
+//	{
+//		exit(1);
+//	}
+//
+//	if (argc == 3)
+//	{
+//		//GPIO -> OPTO
+////Opto ON		
+//		for (i = 0; i < 4; i++)
+//		{
+//			if (OK != gpioChDirSet(dev, i + 1, 0))
+//			{
+//				printf("Fail to set GPIO direction!\n");
+//				exit(1);
+//			}
+//			if (OK != gpioChSet(dev, i + 1, 0))
+//			{
+//				printf("Fail to set GPIO !\n");
+//				exit(1);
+//			}
+//			busyWait(50);
+//			if (OK != optoChGet(dev, t1OptoCh[i], &state))
+//			{
+//				printf("Fail to read opto!\n");
+//				exit(1);
+//			}
+//			total++;
+//			if (state == 1)
+//			{
+//				printf("Gpio %d to Opto %d Turn ON  PASS\n", (int)i + 1,
+//					(int)t1OptoCh[i]);
+//				pass++;
+//			}
+//			else
+//			{
+//				printf("Gpio %d to Opto %d Turn ON  FAIL!\n", (int)i + 1,
+//					(int)t1OptoCh[i]);
+//			}
+////Opto OFF
+//			if (OK != gpioChDirSet(dev, i + 1, 1))
+//			{
+//				printf("Fail to set GPIO direction!\n");
+//				exit(1);
+//			}
+//
+//			busyWait(50);
+//			if (OK != optoChGet(dev, t1OptoCh[i], &state))
+//			{
+//				printf("Fail to read opto!\n");
+//				exit(1);
+//			}
+//			total++;
+//			if (state == 0)
+//			{
+//				printf("Gpio %d to Opto %d Turn OFF  PASS\n", (int)i + 1,
+//					(int)t1OptoCh[i]);
+//				pass++;
+//			}
+//			else
+//			{
+//				printf("Gpio %d to Opto %d Turn OFF  FAIL!\n", (int)i + 1,
+//					(int)t1OptoCh[i]);
+//			}
+//		}
+//
+//		//Open drain -> OPTO
+////Opto ON		
+//		for (i = 0; i < 4; i++)
+//		{
+//			if (OK != odSet(dev, i + 1, 100))
+//			{
+//				printf("Fail to set Open drains output!\n");
+//				exit(1);
+//			}
+//			busyWait(250);
+//			if (OK != optoChGet(dev, t2OptoCh[i], &state))
+//			{
+//				printf("Fail to read opto!\n");
+//				exit(1);
+//			}
+//			total++;
+//			if (state == 1)
+//			{
+//				printf("OD %d to Opto %d Turn ON  PASS\n", (int)i + 1,
+//					(int)t2OptoCh[i]);
+//				pass++;
+//			}
+//			else
+//			{
+//				printf("OD %d to Opto %d Turn ON  FAIL!\n", (int)i + 1,
+//					(int)t2OptoCh[i]);
+//			}
+////Opto OFF
+//			if (OK != odSet(dev, i + 1, 0))
+//			{
+//				printf("Fail to set Open drains output!\n");
+//				exit(1);
+//			}
+//			busyWait(250);
+//			if (OK != optoChGet(dev, t2OptoCh[i], &state))
+//			{
+//				printf("Fail to read opto!\n");
+//				exit(1);
+//			}
+//			total++;
+//			if (state == 0)
+//			{
+//				printf("OD %d to Opto %d Turn OFF  PASS\n", (int)i + 1,
+//					(int)t2OptoCh[i]);
+//				pass++;
+//			}
+//			else
+//			{
+//				printf("OD %d to Opto %d Turn OFF  FAIL!\n", (int)i + 1,
+//					(int)t2OptoCh[i]);
+//			}
+//		}
+//		//DAC -> ADC
+////DAC 2V		
+//		for (i = 0; i < 4; i++)
+//		{
+//
+//			if (OK != dacSet(dev, i + 1, 2))
+//			{
+//				printf("Fail to set DAC output!\n");
+//				exit(1);
+//			}
+//			busyWait(250);
+//			if (OK != adcGet(dev, adcCh1[i], &val))
+//			{
+//				printf("Fail to read adc\n");
+//				exit(1);
+//			}
+//			total++;
+//			if ( (val < 2.1) && (val > 1.9))
+//			{
+//				printf("DAC %d to ADC %d @2V  PASS\n", (int)i + 1, (int)adcCh1[i]);
+//				pass++;
+//			}
+//			else
+//			{
+//				printf("DAC %d to ADC %d @2V  FAIL!\n", (int)i + 1, (int)adcCh1[i]);
+//			}
+//
+//			if (OK != adcGet(dev, adcCh2[i], &val))
+//			{
+//				printf("Fail to read adc\n");
+//				exit(1);
+//			}
+//			total++;
+//			if ( (val < 2.1) && (val > 1.9))
+//			{
+//				printf("DAC %d to ADC %d @2V  PASS\n", (int)i + 1, (int)adcCh2[i]);
+//				pass++;
+//			}
+//			else
+//			{
+//				printf("DAC %d to ADC %d @2V  FAIL!\n", (int)i + 1, (int)adcCh2[i]);
+//			}
+//
+//			if (OK != dacSet(dev, i + 1, 0))
+//			{
+//				printf("Fail to set DAC output!\n");
+//				exit(1);
+//			}
+//			busyWait(250);
+//			if (OK != adcGet(dev, adcCh1[i], &val))
+//			{
+//				printf("Fail to read adc\n");
+//				exit(1);
+//			}
+//			total++;
+//			if ( (val < 0.1) && (val > -0.1))
+//			{
+//				printf("DAC %d to ADC %d @0V  PASS\n", (int)i + 1, (int)adcCh1[i]);
+//				pass++;
+//			}
+//			else
+//			{
+//				printf("DAC %d to ADC %d @0V  FAIL!\n", (int)i + 1, (int)adcCh1[i]);
+//			}
+//
+//			if (OK != adcGet(dev, adcCh2[i], &val))
+//			{
+//				printf("Fail to read adc\n");
+//				exit(1);
+//			}
+//			total++;
+//			if ( (val < 0.1) && (val > -0.1))
+//			{
+//				printf("DAC %d to ADC %d @0V  PASS\n", (int)i + 1, (int)adcCh2[i]);
+//				pass++;
+//			}
+//			else
+//			{
+//				printf("DAC %d to ADC %d @0V  FAIL!\n", (int)i + 1, (int)adcCh2[i]);
+//			}
+//
+//		}
+//		if (pass == total)
+//		{
+//			printf("\n === All tests PASS === \n");
+//		}
+//		else
+//		{
+//			printf("\n === Tests FAIL/from -> %d/%d !=== \n", total - pass, total);
+//		}
+//	}
+//	else
+//	{
+//		printf("Invalid params number:\n %s", CMD_IO_TEST.usage1);
+//		exit(1);
+//	}
+//	return OK;
+//}
 
 const CliCmdType *gCmdArray[] =
 {

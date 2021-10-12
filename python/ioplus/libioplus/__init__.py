@@ -280,3 +280,120 @@ def setGpioPin(stack, pin, val):
         return -1
     bus.close()
     return 1
+
+def cfgOptoEdgeCount(stack, channel, state):
+    if stack < 0 or stack > 7:
+        raise ValueError('Invalid stack level')
+    if channel < 1 or channel > 8:
+        raise ValueError('Invalid channel number')
+    EDGE_NONE = 0
+    EDGE_FALLING = 2
+    EDGE_RISING = 1
+    if state < EDGE_NONE or state > EDGE_FALLING + EDGE_RISING:
+        raise ValueError('Invalid edge type 0-none, 1-rising, 2-falling, 3-both')
+    I2C_MEM_OPTO_IT_RISING_ADD = 56
+    I2C_MEM_OPTO_IT_FALLING_ADD = 57
+    bus = smbus.SMBus(1)
+    try:
+        rising = bus.read_byte_data(DEVICE_ADDRESS + stack, I2C_MEM_OPTO_IT_RISING_ADD)
+        falling = bus.read_byte_data(DEVICE_ADDRESS + stack, I2C_MEM_OPTO_IT_FALLING_ADD)
+        if state & EDGE_FALLING:
+            falling |= 1 << (channel - 1)
+        else:
+            falling &= ~(1 << (channel - 1))
+        if state & EDGE_RISING:
+            rising |= 1 << (channel - 1)
+        else:
+            rising &= ~(1 << (channel -1))
+        bus.write_byte_data(DEVICE_ADDRESS + stack,I2C_MEM_OPTO_IT_RISING_ADD, rising)
+        bus.write_byte_data(DEVICE_ADDRESS + stack, I2C_MEM_OPTO_IT_FALLING_ADD, falling);
+
+    except Exception as e:
+        bus.close()
+        return -1
+    bus.close()
+    return 1
+
+def getOptoCount(stack, channel):
+    if stack < 0 or stack > 7:
+        raise ValueError('Invalid stack level')
+    if channel < 1 or channel > 8:
+        raise ValueError('Invalid channel number')
+    I2C_MEM_OPTO_EDGE_COUNT_ADD = 128
+    bus = smbus.SMBus(1)
+    try:
+        buff = bus.read_i2c_block_data(DEVICE_ADDRESS + stack, I2C_MEM_OPTO_EDGE_COUNT_ADD + 4 * (channel - 1), 4)
+        count = buff[0] + buff[1] * 0x100 + buff[2] * 0x10000 + buff[3] * 0x1000000
+    except Exception as e:
+        bus.close()
+        return -1
+    bus.close()
+    return count
+
+def rstOptoCount(stack, channel):
+    if stack < 0 or stack > 7:
+        raise ValueError('Invalid stack level')
+    if channel < 1 or channel > 8:
+        raise ValueError('Invalid channel number')
+    I2C_MEM_OPTO_CNT_RST_ADD = 60
+    bus = smbus.SMBus(1)
+    try:
+        bus.write_byte_data(DEVICE_ADDRESS + stack, I2C_MEM_OPTO_CNT_RST_ADD, channel)
+    except Exception as e:
+        bus.close()
+        return -1
+    bus.close()
+    return 1
+
+def cfgOptoEncoder(stack, channel, state):
+    if stack < 0 or stack > 7:
+        raise ValueError('Invalid stack level')
+    if channel < 1 or channel > 4:
+        raise ValueError('Invalid channel number')
+    if state < 0 or state > 1:
+        raise ValueError('Invalid state value 0-off, 1-on')
+    I2C_MEM_OPTO_ENC_ENABLE_ADD = 70
+    bus = smbus.SMBus(1)
+    try:
+        encoders = bus.read_byte_data(DEVICE_ADDRESS + stack, I2C_MEM_OPTO_ENC_ENABLE_ADD)
+        if state == 1:
+            encoders |= 1 << (channel - 1)
+        else:
+            encoders &= ~(1 << (channel - 1))
+        bus.write_byte_data(DEVICE_ADDRESS + stack, I2C_MEM_OPTO_ENC_ENABLE_ADD, encoders)
+    except Exception as e:
+        bus.close()
+        return -1
+    bus.close()
+    return 1
+
+def getOptoEncoderCount(stack, channel):
+    if stack < 0 or stack > 7:
+        raise ValueError('Invalid stack level')
+    if channel < 1 or channel > 4:
+        raise ValueError('Invalid channel number')
+    I2C_MEM_OPTO_ENC_COUNT_ADD = 187
+    bus = smbus.SMBus(1)
+    try:
+        buff = bus.read_i2c_block_data(DEVICE_ADDRESS + stack, I2C_MEM_OPTO_ENC_COUNT_ADD + 4 * (channel - 1), 4)
+        count = struct.unpack('i', bytearray(buff)) #int.from_bytes(buff, byteorder='big', signed=True)
+    except Exception as e:
+        bus.close()
+        raise e
+    bus.close()
+    return count
+
+def resetOptoEncoderCount(stack, channel):
+    if stack < 0 or stack > 7:
+        raise ValueError('Invalid stack level')
+    if channel < 1 or channel > 4:
+        raise ValueError('Invalid channel number')
+    I2C_MEM_OPTO_ENC_CNT_RST_ADD = 72
+    bus = smbus.SMBus(1)
+    try:
+        bus.write_byte_data(DEVICE_ADDRESS + stack, I2C_MEM_OPTO_ENC_CNT_RST_ADD, channel)
+    except Exception as e:
+        bus.close()
+        raise e
+    bus.close()
+    return 1

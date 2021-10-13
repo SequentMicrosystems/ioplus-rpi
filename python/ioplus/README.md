@@ -120,4 +120,60 @@ Set one GPIO pin state if his direction is output
 
 **val** - 0 = low; 1 - high
 
+### cfgOptoEdgeCount(stack, channel, state)
+Configure the edge counting on a opto coupled input channel
+
+**stack** - stack level, set with jumpers [0..7]
+
+**channel** - channel number [1..8]
+
+**state** - 0 = disble; 1 - count rising edges; 2 - count falling edges; 3 - count both
+
+### getOptoCount(stack, channel)
+Read the opto edge counter on a channel
+
+**stack** - stack level, set with jumpers [0..7]
+
+**channel** - channel number [1..8]
+
+Returns the counter value
+
+### rstOptoCount(stack, channel)
+Reset the edge counter.
+
+**stack** - stack level, set with jumpers [0..7]
+
+**channel** - channel number [1..8]
+
+### cfgOptoEncoder(stack, channel, state)
+Config the encoder inputs on optocoupled channels. The encoder can be connected on opto 1/2, 3/4, 5/6, 7/8 this means 4 encoders.
+
+**stack** - stack level, set with jumpers [0..7]
+
+**channel** - channel number [1..4]
+
+**state** - 0- disable, 1 - enable
+
+### getOptoEncoderCount(stack, channel)
+Read the opto encoder counter
+
+**stack** - stack level, set with jumpers [0..7]
+
+**channel** - channel number [1..4]
+
+Returns 32bits signed integer represents counter
+
+### resetOptoEncoderCount(stack, channel)
+Reset the conter
+
+**stack** - stack level, set with jumpers [0..7]
+
+**channel** - channel number [1..4]
+
+
+
+
+
+
+
 

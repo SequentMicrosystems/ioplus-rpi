@@ -161,7 +161,7 @@ Read the opto encoder counter
 
 **channel** - channel number [1..4]
 
-Returns 32bits signed integer represents counter
+Return 32 bits signed integer represents the counter
 
 ### resetOptoEncoderCount(stack, channel)
 Reset the conter

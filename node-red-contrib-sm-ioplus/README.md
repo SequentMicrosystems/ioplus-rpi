@@ -1,6 +1,6 @@
 # node-red-contrib-sm-ioplus
 
-The Node-RED nodes for the <a href="https://sequentmicrosystems.com/products/raspberry-pi-home-automation-card" target="_blank">Home Automation card</a>
+The Node-RED nodes for the <a href="https://sequentmicrosystems.com/products/raspberry-pi-home-automation-card" target="_blank" rel="noopener">Home Automation card</a>
 
 ## Command line installation
 

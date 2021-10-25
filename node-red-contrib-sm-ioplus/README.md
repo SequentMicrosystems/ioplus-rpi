@@ -86,4 +86,4 @@ The value in percentage is set dynamically as a number between 0..100 thru ```ms
 
 This node is using the I2C-bus package from @fivdi, you can visit his work on github [here](https://github.com/fivdi/i2c-bus). 
 The inspiration for this node came from @nielsnl68 work with [node-red-contrib-i2c](https://github.com/nielsnl68/node-red-contrib-i2c).
-Thank both for the great job.
+We thank them for the great job.

@@ -1,6 +1,6 @@
 # node-red-contrib-sm-ioplus
 
-The Node-RED nodes for the [Home Automation card](https://sequentmicrosystems.com/products/raspberry-pi-home-automation-card) card.
+The Node-RED nodes for the [Home Automation card](https://sequentmicrosystems.com/products/raspberry-pi-home-automation-card){:target="_blank"} card.
 
 ## Command line installation
 
@@ -28,16 +28,16 @@ Restart the Node-RED service
 ## Node-RED installation
 
 On the Node-RED home screen click on the Menu icon on the top toolbar right corner:
-(pic1)
+![menu](../res/1_menu.jpg)
 
 then "Manage Palette":
-(pic2)
+![manage](../res/2_manage_palette.jpg)
 
 then "Install" tab:
-(pic3)
+![install](../res/3_install_tab.jpg)
 
 Search for "ioplus" and click "Install" again:
-(pic4)
+![search](../res/4_search_install.jpg)
 
 Sequent Microsystems nodes for the Home Automation card will be displayed on the Node-RED palette
 

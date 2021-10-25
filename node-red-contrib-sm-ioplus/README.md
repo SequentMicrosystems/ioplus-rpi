@@ -1,32 +1,48 @@
 # node-red-contrib-sm-ioplus
 
-This is the node-red node to control Sequent Microsystems [Home Automation](https://sequentmicrosystems.com/products/raspberry-pi-home-automation-card) card.
+The Node-RED nodes for the [Home Automation card](https://sequentmicrosystems.com/products/raspberry-pi-home-automation-card) card.
 
-## Manual Installation
+## Command line installation
 
-Clone or update the repository, follow the instrutions fron the [first page.](https://github.com/SequentMicrosystems/ioplus-rpi)
-
-In your node-red user directory, tipicaly ~/.node-red
-
+For first time installation, clone the repository:
 ```bash
-~$ cd ~/.node-red
+~$ git clone https://github.com/SequentMicrosystems/ioplus-rpi.git
 ```
 
-Run the following command:
-
+If you already cloned the repository, update to the latest version:
 ```bash
-~/.node-red$ npm install ~/ioplus-rpi/node-red-contrib-sm-ioplus
+$ cd /ioplus-rpi/  
+~/ioplus-rpi$ git pull
+```
+Install the Node-RED nodes:
+```bash
+$ cd /.node-red
+/.node-red$ npm install /ioplus-rpi/node-red-contrib-sm-ioplus
+```
+Restart the Node-RED service
+```bash
+~$ node-red-stop
+~$ node-red-start
 ```
 
-In order to see the node in the palette and use-it you need to restart node-red. If you run node-red as a service:
- ```bash
- ~$ node-red-stop
- ~$ node-red-start
- ```
+## Node-RED installation
+
+On the Node-RED home screen click on the Menu icon on the top toolbar right corner:
+(pic1)
+
+then "Manage Palette":
+(pic2)
+
+then "Install" tab:
+(pic3)
+
+Search for "ioplus" and click "Install" again:
+(pic4)
+
+Sequent Microsystems nodes for the Home Automation card will be displayed on the Node-RED palette
 
 ## Usage
 
-After install and restart the node-red you will see on the node palete, under Sequent Microsystems category:
 
 ### IOPLUS RELAY
 

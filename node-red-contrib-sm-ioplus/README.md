@@ -50,23 +50,23 @@ This node controls the relays of the card. Set the "relay" parameter to [1..8] t
 
 ### IOPLUS 0-10V out
 
-This node controls one 0-10V output channel. The card stack level and channel number can be set in the node dialog box or dynamically through ```msg.stack``` and ```msg.channel.``` The value in volts is set dynamically as a number between 0..10  through ```msg.payload.```
+This node controls one 0-10V output channel. The card stack level and channel number can be set in the node dialog box or dynamically through ```msg.stack``` and ```msg.channel```. The value in volts is set dynamically as a number between 0..10  through ```msg.payload```.
 
 ### IOPLUS ADC in
 
-This node reads one analog input channel. The card stack level and channel number can be set in the node dialog box or dynamically through ```msg.stack``` and ```msg.channel.``` Reading is triggered by the message input. The output can be found in the output message payload as a number representing the voltage.
+This node reads one analog input channel. The card stack level and channel number can be set in the node dialog box or dynamically through ```msg.stack``` and ```msg.channel```. Reading is triggered by the message input. The output can be found in the output message payload as a number representing the voltage.
 
 ### IOPLUS OPT cnt
 
-This node reads the optically coupled input counter and sets the counting edges for one channel. The card stack level and channel number can be set in the node dialog box or dynamically through ```msg.stack``` and ```msg.channel.``` Rising and/or falling edge counting can be enabled/diabled from the node dialog screen. Edge settings are sent to the card when the node is deployed, when the flow starts or a different channel is selected through ```msg.channel.``` Reading is triggered by the message input. The output can be found in the output message payload as a number.
+This node reads the optically coupled input counter and sets the counting edges for one channel. The card stack level and channel number can be set in the node dialog box or dynamically through ```msg.stack``` and ```msg.channel```. Rising and/or falling edge counting can be enabled/diabled from the node dialog screen. Edge settings are sent to the card when the node is deployed, when the flow starts or a different channel is selected through ```msg.channel```. Reading is triggered by the message input. The output can be found in the output message payload as a number.
 
 ### IOPLUS OPT in
 
-This node reads the state of one optically coupled input channel. The card stack level and channel number can be set in the node dialog box or dynamically through ```msg.stack``` and ```msg.channel.``` Reading is triggered by the message input.  The output can be found in the output message payload as a boolean value.
+This node reads the state of one optically coupled input channel. The card stack level and channel number can be set in the node dialog box or dynamically through ```msg.stack``` and ```msg.channel```. Reading is triggered by the message input.  The output can be found in the output message payload as a boolean value.
 
 ### IOPLUS OD out
 
-This node controls one open drain output channel. The card stack level and channel number can be set in the node dialog box or dynamically through ```msg.stack``` and ```msg.channel.``` The value is set dynamically as a number between 0..100%through ```msg.payload.```
+This node controls one open drain output channel. The card stack level and channel number can be set in the node dialog box or dynamically through ```msg.stack``` and ```msg.channel```. The value is set dynamically as a number between 0..100%through ```msg.payload```.
 
 ## Credits
 

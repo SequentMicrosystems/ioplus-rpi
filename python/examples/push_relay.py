@@ -1,3 +1,4 @@
+#This example turn on a relay when you press the button and turn it off when you release the button.
 import libioplus as home
 import RPi.GPIO as GPIO
 import time
@@ -8,7 +9,7 @@ GPIO.setwarnings(False)
 pbPin = 26
 GPIO.setup(pbPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
-
+#Call the script with the command:"python push_relay.py <relay number>"
 if __name__ == "__main__": 
     ch = 1
     if len(sys.argv) > 1:

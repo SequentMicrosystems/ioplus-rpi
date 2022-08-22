@@ -283,6 +283,7 @@ module.exports = function(RED) {
         var buffer = Buffer.alloc(4);
         var lastCfgCh = 0;
         var cfgByte = 0;
+		var cntReset = 0;
         
         node.port = I2C.openSync( 1 );
         node.on("input", function(msg) {
@@ -293,6 +294,11 @@ module.exports = function(RED) {
             if (isNaN(channel)) channel = msg.channel;
             stack = parseInt(stack);
             channel = parseInt(channel);
+			var rst = msg.cntReset;
+			if (msg.cntReset != null)
+			{
+				cntReset = parseInt(msg.cntReset);
+			}
             var rising = true;
             var falling = true;
             if(node.rising == false || node.rising == "false" || node.rising == 0)
@@ -328,6 +334,15 @@ module.exports = function(RED) {
             if(channel > 8){
               channel = 8;
             }
+			if(rst == 1 || rst =='1')
+			{
+				cfgByte = channel;
+				node.port.writeByte(hwAdd, I2C_MEM_OPTO_CH_CONT_RESET, cfgByte, function(err) {
+				  if (err) {
+					node.error(err, msg);
+				  }
+				});
+			}
             if(lastCfgCh != channel)
             {
               //node.log("Check configuration");

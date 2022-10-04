@@ -8,10 +8,11 @@ Command Line, Python, and Node-Red for [Home Automation Stackable Card for Raspb
 
 ## Setup
 
-Enable Raspberry Pi I2C communication:
+Enable Raspberry Pi I2C communication by opening a terminal and typing:
 ```bash
 ~$ sudo raspi-config
 ```
+Go to the *Interface Options* menu then *I2C* and enable the port.
 
 ## Usage
 

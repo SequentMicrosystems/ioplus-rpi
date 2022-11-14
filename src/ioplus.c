@@ -21,7 +21,7 @@
 
 #define VERSION_BASE	(int)1
 #define VERSION_MAJOR	(int)2
-#define VERSION_MINOR	(int)4
+#define VERSION_MINOR	(int)5
 
 #define UNUSED(X) (void)X      /* To avoid gcc/g++ warnings */
 
@@ -1037,7 +1037,8 @@ int odGet(int dev, int ch, float *val)
 		printf("Open drain channel out of range!\n");
 		return ERROR;
 	}
-	if (OK != i2cReadWordAS(dev, I2C_MEM_OD_PWM_VAL_RAW_ADD + 2 * (ch - 1), &raw))
+	if (OK
+		!= i2cReadWordAS(dev, I2C_MEM_OD_PWM_VAL_RAW_ADD + 2 * (ch - 1), &raw))
 	{
 		printf("Fail to read!\n");
 		return ERROR;
@@ -1959,7 +1960,9 @@ int doWdtGetOffPeriod(int argc, char *argv[])
 
 	if (argc == 3)
 	{
-		if (OK != i2cReadDWordAS(dev, I2C_MEM_WDT_POWER_OFF_INTERVAL_GET_ADD, &period))
+		if (OK
+			!= i2cReadDWordAS(dev, I2C_MEM_WDT_POWER_OFF_INTERVAL_GET_ADD,
+				&period))
 		{
 			printf("Fail to read watchdog period!\n");
 			exit(1);
@@ -1985,256 +1988,143 @@ const CliCmdType CMD_IO_TEST =
 	"\tUsage:		ioplus <stack> iotest <test type>\n",
 	"\tExample:		ioplus 0 iotest; Run the tests \n"};
 
-//int doLoopbackTest(int argc, char *argv[])
-//{
-//	int dev = 0;
-//	u8 i = 0;
-//	OutStateEnumType state;
-//	int pass = 0;
-//	int total = 0;
-//	float val = 0;
-//	const u8 t1OptoCh[4] =
-//	{
-//		2,
-//		1,
-//		4,
-//		3};
-//	const u8 t2OptoCh[4] =
-//	{
-//		8,
-//		7,
-//		6,
-//		5};
-//	const u8 adcCh1[4] =
-//	{
-//		2,
-//		5,
-//		1,
-//		7};
-//	const u8 adcCh2[4] =
-//	{
-//		4,
-//		6,
-//		3,
-//		8};
-//
-//	dev = doBoardInit(atoi(argv[1]));
-//	if (dev <= 0)
-//	{
-//		exit(1);
-//	}
-//
-//	if (argc == 3)
-//	{
-//		//GPIO -> OPTO
-////Opto ON		
-//		for (i = 0; i < 4; i++)
-//		{
-//			if (OK != gpioChDirSet(dev, i + 1, 0))
-//			{
-//				printf("Fail to set GPIO direction!\n");
-//				exit(1);
-//			}
-//			if (OK != gpioChSet(dev, i + 1, 0))
-//			{
-//				printf("Fail to set GPIO !\n");
-//				exit(1);
-//			}
-//			busyWait(50);
-//			if (OK != optoChGet(dev, t1OptoCh[i], &state))
-//			{
-//				printf("Fail to read opto!\n");
-//				exit(1);
-//			}
-//			total++;
-//			if (state == 1)
-//			{
-//				printf("Gpio %d to Opto %d Turn ON  PASS\n", (int)i + 1,
-//					(int)t1OptoCh[i]);
-//				pass++;
-//			}
-//			else
-//			{
-//				printf("Gpio %d to Opto %d Turn ON  FAIL!\n", (int)i + 1,
-//					(int)t1OptoCh[i]);
-//			}
-////Opto OFF
-//			if (OK != gpioChDirSet(dev, i + 1, 1))
-//			{
-//				printf("Fail to set GPIO direction!\n");
-//				exit(1);
-//			}
-//
-//			busyWait(50);
-//			if (OK != optoChGet(dev, t1OptoCh[i], &state))
-//			{
-//				printf("Fail to read opto!\n");
-//				exit(1);
-//			}
-//			total++;
-//			if (state == 0)
-//			{
-//				printf("Gpio %d to Opto %d Turn OFF  PASS\n", (int)i + 1,
-//					(int)t1OptoCh[i]);
-//				pass++;
-//			}
-//			else
-//			{
-//				printf("Gpio %d to Opto %d Turn OFF  FAIL!\n", (int)i + 1,
-//					(int)t1OptoCh[i]);
-//			}
-//		}
-//
-//		//Open drain -> OPTO
-////Opto ON		
-//		for (i = 0; i < 4; i++)
-//		{
-//			if (OK != odSet(dev, i + 1, 100))
-//			{
-//				printf("Fail to set Open drains output!\n");
-//				exit(1);
-//			}
-//			busyWait(250);
-//			if (OK != optoChGet(dev, t2OptoCh[i], &state))
-//			{
-//				printf("Fail to read opto!\n");
-//				exit(1);
-//			}
-//			total++;
-//			if (state == 1)
-//			{
-//				printf("OD %d to Opto %d Turn ON  PASS\n", (int)i + 1,
-//					(int)t2OptoCh[i]);
-//				pass++;
-//			}
-//			else
-//			{
-//				printf("OD %d to Opto %d Turn ON  FAIL!\n", (int)i + 1,
-//					(int)t2OptoCh[i]);
-//			}
-////Opto OFF
-//			if (OK != odSet(dev, i + 1, 0))
-//			{
-//				printf("Fail to set Open drains output!\n");
-//				exit(1);
-//			}
-//			busyWait(250);
-//			if (OK != optoChGet(dev, t2OptoCh[i], &state))
-//			{
-//				printf("Fail to read opto!\n");
-//				exit(1);
-//			}
-//			total++;
-//			if (state == 0)
-//			{
-//				printf("OD %d to Opto %d Turn OFF  PASS\n", (int)i + 1,
-//					(int)t2OptoCh[i]);
-//				pass++;
-//			}
-//			else
-//			{
-//				printf("OD %d to Opto %d Turn OFF  FAIL!\n", (int)i + 1,
-//					(int)t2OptoCh[i]);
-//			}
-//		}
-//		//DAC -> ADC
-////DAC 2V		
-//		for (i = 0; i < 4; i++)
-//		{
-//
-//			if (OK != dacSet(dev, i + 1, 2))
-//			{
-//				printf("Fail to set DAC output!\n");
-//				exit(1);
-//			}
-//			busyWait(250);
-//			if (OK != adcGet(dev, adcCh1[i], &val))
-//			{
-//				printf("Fail to read adc\n");
-//				exit(1);
-//			}
-//			total++;
-//			if ( (val < 2.1) && (val > 1.9))
-//			{
-//				printf("DAC %d to ADC %d @2V  PASS\n", (int)i + 1, (int)adcCh1[i]);
-//				pass++;
-//			}
-//			else
-//			{
-//				printf("DAC %d to ADC %d @2V  FAIL!\n", (int)i + 1, (int)adcCh1[i]);
-//			}
-//
-//			if (OK != adcGet(dev, adcCh2[i], &val))
-//			{
-//				printf("Fail to read adc\n");
-//				exit(1);
-//			}
-//			total++;
-//			if ( (val < 2.1) && (val > 1.9))
-//			{
-//				printf("DAC %d to ADC %d @2V  PASS\n", (int)i + 1, (int)adcCh2[i]);
-//				pass++;
-//			}
-//			else
-//			{
-//				printf("DAC %d to ADC %d @2V  FAIL!\n", (int)i + 1, (int)adcCh2[i]);
-//			}
-//
-//			if (OK != dacSet(dev, i + 1, 0))
-//			{
-//				printf("Fail to set DAC output!\n");
-//				exit(1);
-//			}
-//			busyWait(250);
-//			if (OK != adcGet(dev, adcCh1[i], &val))
-//			{
-//				printf("Fail to read adc\n");
-//				exit(1);
-//			}
-//			total++;
-//			if ( (val < 0.1) && (val > -0.1))
-//			{
-//				printf("DAC %d to ADC %d @0V  PASS\n", (int)i + 1, (int)adcCh1[i]);
-//				pass++;
-//			}
-//			else
-//			{
-//				printf("DAC %d to ADC %d @0V  FAIL!\n", (int)i + 1, (int)adcCh1[i]);
-//			}
-//
-//			if (OK != adcGet(dev, adcCh2[i], &val))
-//			{
-//				printf("Fail to read adc\n");
-//				exit(1);
-//			}
-//			total++;
-//			if ( (val < 0.1) && (val > -0.1))
-//			{
-//				printf("DAC %d to ADC %d @0V  PASS\n", (int)i + 1, (int)adcCh2[i]);
-//				pass++;
-//			}
-//			else
-//			{
-//				printf("DAC %d to ADC %d @0V  FAIL!\n", (int)i + 1, (int)adcCh2[i]);
-//			}
-//
-//		}
-//		if (pass == total)
-//		{
-//			printf("\n === All tests PASS === \n");
-//		}
-//		else
-//		{
-//			printf("\n === Tests FAIL/from -> %d/%d !=== \n", total - pass, total);
-//		}
-//	}
-//	else
-//	{
-//		printf("Invalid params number:\n %s", CMD_IO_TEST.usage1);
-//		exit(1);
-//	}
-//	return OK;
-//}
+//*************************************************************************************
+
+int pwmFreqGet(int dev, int *val)
+{
+	u16 raw = 0;
+
+	if (OK != i2cReadWordAS(dev, I2C_MEM_OD_PWM_FREQUENCY, &raw))
+	{
+		printf("Fail to read!\n");
+		return ERROR;
+	}
+	*val = raw;
+	return OK;
+}
+
+int pwmFreqSet(int dev, int val)
+{
+	u8 buff[2] =
+	{
+		0,
+		0};
+	u16 raw = 0;
+
+	if (val < 10)
+	{
+		val = 10;
+	}
+	if (val > 64000)
+	{
+		val = 64000;
+	}
+	raw = (u16)val;
+	memcpy(buff, &raw, 2);
+	if (OK != i2cMem8Write(dev, I2C_MEM_OD_PWM_FREQUENCY, buff, 2))
+	{
+		printf("Fail to write!\n");
+		return ERROR;
+	}
+	return OK;
+}
+
+int doPwmFreqRead(int argc, char *argv[]);
+const CliCmdType CMD_PWM_FREQ_READ =
+	{
+		"pwmfrd",
+		2,
+		&doPwmFreqRead,
+		"\tpwmfrd:		Read open-drain pwm frequency in Hz \n",
+		"\tUsage:		ioplus <stack> pwmfrd\n",
+		"",
+		"\tExample:		ioplus 0 pwmfrd; Read the pwm frequency for all open drain output channels\n"};
+
+int doPwmFreqRead(int argc, char *argv[])
+{
+	int val = 0;
+	int dev = 0;
+
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		exit(1);
+	}
+	if (gHwVer < 3)
+		{
+			printf(
+				"This feature is available on hardware versions greater or equal to 3.0!\n");
+			exit(1);
+		}
+	if (argc == 3)
+	{
+
+		if (OK != pwmFreqGet(dev, &val))
+		{
+			printf("Fail to read!\n");
+			exit(1);
+		}
+
+		printf("%d Hz\n", val);
+	}
+	else
+	{
+		printf("Invalid params number:\n %s", CMD_PWM_FREQ_READ.usage1);
+		exit(1);
+	}
+	return OK;
+}
+
+int doPwmFreqWrite(int argc, char *argv[]);
+const CliCmdType CMD_PWM_FREQ_WRITE =
+	{
+		"pwmfwr",
+		2,
+		&doPwmFreqWrite,
+		"\tpwmfwr:		Write open dran output pwm frequency in Hz [10..64000]\n",
+		"\tUsage:		ioplus <stack> pwmfwr <value>\n",
+		"",
+		"\tExample:		ioplus 0 dacwr 200; Set the open-drain output pwm frequency to 200Hz \n"};
+
+int doPwmFreqWrite(int argc, char *argv[])
+{
+	int dev = 0;
+	int val = 0;
+
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		exit(1);
+	}
+	if (gHwVer < 3)
+	{
+		printf(
+			"This feature is available on hardware versions greater or equal to 3.0!\n");
+		exit(1);
+	}
+	if (argc == 4)
+	{
+		val = atof(argv[3]);
+		if (val < 10 || val > 65000)
+		{
+			printf("Invalid pwm frequency value, must be 10..65000 \n");
+			exit(1);
+		}
+
+		if (OK != pwmFreqSet(dev, val))
+		{
+			printf("Fail to write!\n");
+			exit(1);
+		}
+		printf("done\n");
+	}
+	else
+	{
+		printf("Invalid params number:\n %s", CMD_PWM_FREQ_WRITE.usage1);
+		exit(1);
+	}
+	return OK;
+}
 
 const CliCmdType *gCmdArray[] =
 {
@@ -2284,6 +2174,8 @@ const CliCmdType *gCmdArray[] =
 	&CMD_WDT_SET_OFF_PERIOD,
 	&CMD_WDT_GET_OFF_PERIOD,
 	&CMD_IO_TEST,
+	&CMD_PWM_FREQ_READ,
+	&CMD_PWM_FREQ_WRITE,
 	NULL}; //null terminated array of cli structure pointers
 
 int main(int argc, char *argv[])

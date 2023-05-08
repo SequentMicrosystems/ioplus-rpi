@@ -2134,7 +2134,7 @@ const CliCmdType CMD_OWB_RD =
 		2,
 		&doOwbGet,
 		"\towbtrd		Display the temperature readed from a one wire bus connected sensor\n",
-		"\tUsage:		ioplus <stack> owbtrd <sensor (1..16)>\n",
+		"\tUsage:		ioplus <stack> owbtrd <sensor (1..10)>\n",
 		"",
 		"\tExample:		ioplus 0 owbtrd 1 Display the temperature of the sensor #1\n"};
 
@@ -2198,7 +2198,7 @@ const CliCmdType CMD_OWB_ID_RD =
 		2,
 		&doOwbIdGet,
 		"\towbidrd		Display the 64bits ROM ID of the one wire bus connected sensor\n",
-		"\tUsage:		ioplus <stack> owbidrd <sensor (1..16)>\n",
+		"\tUsage:		ioplus <stack> owbidrd <sensor (1..10)>\n",
 		"",
 		"\tExample:		ioplus 0 owbidrd 1 Display the ROM ID of the sensor #1\n"};
 

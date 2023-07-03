@@ -21,7 +21,7 @@
 
 #define VERSION_BASE	(int)1
 #define VERSION_MAJOR	(int)2
-#define VERSION_MINOR	(int)6
+#define VERSION_MINOR	(int)7
 
 #define UNUSED(X) (void)X      /* To avoid gcc/g++ warnings */
 
@@ -1396,6 +1396,142 @@ int doAdcRead(int argc, char *argv[])
 	return OK;
 }
 
+
+int adcGetMax(int dev, int ch, float *val)
+{
+	u16 raw = 0;
+
+	if ( (ch < CHANNEL_NR_MIN) || (ch > ADC_CH_NR_MAX/2))
+	{
+		printf("ADC channel for process min/max out of range!\n");
+		return ERROR;
+	}
+	if (OK != i2cReadWordAS(dev, I2C_MEM_ADC_MAX + 2 * (ch - 1), &raw))
+	{
+		printf("Fail to read!\n");
+		return ERROR;
+	}
+	*val = (float)raw / 1000;
+	return OK;
+}
+
+int doAdcReadMax(int argc, char *argv[]);
+const CliCmdType CMD_ADC_READ_MAX =
+	{
+		"adcrdmax",
+		2,
+		&doAdcReadMax,
+		"\tadcrdmax:		Read ADC input voltage maxim value (0 - 3.3V) Min calculated on last n samples\n",
+		"\tUsage:		ioplus <stack> adcrdmax <channel>\n",
+		"",
+		"\tExample:		ioplus 0 adcrdmax 2; Read the maxim voltage input on ADC channel #2 on Board #0\n"};
+
+int doAdcReadMax(int argc, char *argv[])
+{
+	int ch = 0;
+	float val = 0;
+	int dev = 0;
+
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		exit(1);
+	}
+
+	if (argc == 4)
+	{
+		ch = atoi(argv[3]);
+		if ( (ch < CHANNEL_NR_MIN) || (ch > ADC_CH_NR_MAX/2))
+		{
+			printf("ADC channel for process min/max out of range!\n");
+			exit(1);
+		}
+
+		if (OK != adcGetMax(dev, ch, &val))
+		{
+			printf("Fail to read!\n");
+			exit(1);
+		}
+
+		printf("%0.3f\n", val);
+	}
+	else
+	{
+		printf("Invalid params number:\n %s", CMD_ADC_READ.usage1);
+		exit(1);
+	}
+	return OK;
+}
+
+
+
+int adcGetMin(int dev, int ch, float *val)
+{
+	u16 raw = 0;
+
+	if ( (ch < CHANNEL_NR_MIN) || (ch > ADC_CH_NR_MAX/2))
+	{
+		printf("ADC channel for process min/max out of range!\n");
+		return ERROR;
+	}
+	if (OK != i2cReadWordAS(dev, I2C_MEM_ADC_MIN + 2 * (ch - 1), &raw))
+	{
+		printf("Fail to read!\n");
+		return ERROR;
+	}
+	*val = (float)raw / 1000;
+	return OK;
+}
+
+int doAdcReadMin(int argc, char *argv[]);
+const CliCmdType CMD_ADC_READ_MIN =
+	{
+		"adcrdmin",
+		2,
+		&doAdcReadMin,
+		"\tadcrdmin:		Read ADC input voltage minim value (0 - 3.3V). Min calculated on last n samples\n",
+		"\tUsage:		ioplus <stack> adcrdmin <channel>\n",
+		"",
+		"\tExample:		ioplus 0 adcrdmin 2; Read the Minim voltage input on ADC channel #2 on Board #0\n"};
+
+int doAdcReadMin(int argc, char *argv[])
+{
+	int ch = 0;
+	float val = 0;
+	int dev = 0;
+
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		exit(1);
+	}
+
+	if (argc == 4)
+	{
+		ch = atoi(argv[3]);
+		if ( (ch < CHANNEL_NR_MIN) || (ch > ADC_CH_NR_MAX/2))
+		{
+			printf("ADC channel for process min/max out of range!\n");
+			exit(1);
+		}
+
+		if (OK != adcGetMin(dev, ch, &val))
+		{
+			printf("Fail to read!\n");
+			exit(1);
+		}
+
+		printf("%0.3f\n", val);
+	}
+	else
+	{
+		printf("Invalid params number:\n %s", CMD_ADC_READ.usage1);
+		exit(1);
+	}
+	return OK;
+}
+
+
 void getCalStat(int dev)
 {
 	u8 buff[2];
@@ -2126,6 +2262,144 @@ int doPwmFreqWrite(int argc, char *argv[])
 	return OK;
 }
 
+
+//***************************************************MIN/MAX sample count read write**********************************************
+int minMaxSamplesGet(int dev, int *val)
+{
+	u8 raw = 0;
+
+	if (OK != i2cReadByteAS(dev, I2C_MEM_MIN_MAX_SAMPLES, &raw))
+	{
+		printf("Fail to read!\n");
+		return ERROR;
+	}
+	*val = raw;
+	return OK;
+}
+
+int minMaxSamplesSet(int dev, int val)
+{
+	u8 buff[2] =
+	{
+		0,
+		0};
+
+	if (val < 5)
+	{
+		val = 10;
+	}
+	if (val > 250)
+	{
+		val = 250;
+	}
+	buff[0] = (u8)val;
+	if (OK != i2cMem8Write(dev, I2C_MEM_MIN_MAX_SAMPLES, buff, 1))
+	{
+		printf("Fail to write!\n");
+		return ERROR;
+	}
+	return OK;
+}
+
+int doMinMaxSamplesRead(int argc, char *argv[]);
+const CliCmdType CMD_MIN_MAX_SAMPLE_READ =
+	{
+		"mmsrd",
+		2,
+		&doMinMaxSamplesRead,
+		"\tmmsrd:		Read the number of the samples used for min / max search in analog inputs\n",
+		"\tUsage:		ioplus <stack> mmsrd\n",
+		"",
+		"\tExample:		ioplus 0 mmsrd; Read the niumber of samples used in min/max search\n"};
+
+int doMinMaxSamplesRead(int argc, char *argv[])
+{
+	int val = 0;
+	int dev = 0;
+
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		exit(1);
+	}
+	if (gHwVer < 3)
+		{
+			printf(
+				"This feature is available on hardware versions greater or equal to 3.0!\n");
+			exit(1);
+		}
+	if (argc == 3)
+	{
+
+		if (OK != minMaxSamplesGet(dev, &val))
+		{
+			printf("Fail to read!\n");
+			exit(1);
+		}
+
+		printf("%d\n", val);
+	}
+	else
+	{
+		printf("Invalid params number:\n %s", CMD_MIN_MAX_SAMPLE_READ.usage1);
+		exit(1);
+	}
+	return OK;
+}
+
+int minMaxSamplesWrite(int argc, char *argv[]);
+const CliCmdType CMD_MIN_MAX_SAMPLE_WRITE =
+	{
+		"mmswr",
+		2,
+		&minMaxSamplesWrite,
+		"\tmmswr:		Write the number of the samples used for min / max search in analog inputs[5..250]\n",
+		"\tUsage:		ioplus <stack> mmswr <value>\n",
+		"",
+		"\tExample:		ioplus 0 mmswr 200; Set the number at 200 samples \n"};
+
+int minMaxSamplesWrite(int argc, char *argv[])
+{
+	int dev = 0;
+	int val = 0;
+
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		exit(1);
+	}
+	if (gHwVer < 3)
+	{
+		printf(
+			"This feature is available on hardware versions greater or equal to 3.0!\n");
+		exit(1);
+	}
+	if (argc == 4)
+	{
+		val = atof(argv[3]);
+		if (val < 5 || val > 250)
+		{
+			printf("Invalid number of samples, must be 5..250 \n");
+			exit(1);
+		}
+
+		if (OK != minMaxSamplesSet(dev, val))
+		{
+			printf("Fail to write!\n");
+			exit(1);
+		}
+		printf("done\n");
+	}
+	else
+	{
+		printf("Invalid params number:\n %s", CMD_MIN_MAX_SAMPLE_WRITE.usage1);
+		exit(1);
+	}
+	return OK;
+}
+
+
+
 //******************************************** One Wire Bus *************************************************
 int doOwbGet(int argc, char *argv[]);
 const CliCmdType CMD_OWB_RD =
@@ -2369,6 +2643,10 @@ const CliCmdType *gCmdArray[] =
 	&CMD_DAC_READ,
 	&CMD_DAC_WRITE,
 	&CMD_ADC_READ,
+	&CMD_ADC_READ_MAX,
+	&CMD_ADC_READ_MIN,
+	&CMD_MIN_MAX_SAMPLE_WRITE,
+	&CMD_MIN_MAX_SAMPLE_READ,
 	&CMD_ADC_CAL,
 	&CMD_ADC_CAL_RST,
 	&CMD_DAC_CAL,

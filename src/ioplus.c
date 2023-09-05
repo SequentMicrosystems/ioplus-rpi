@@ -2,7 +2,7 @@
  * ioplus.c:
  *	Command-line interface to the Raspberry
  *	Pi's IOPLUS card.
- *	Copyright (c) 2016-2020 Sequent Microsystem
+ *	Copyright (c) 2016-2023 Sequent Microsystem
  *	<http://www.sequentmicrosystem.com>
  ***********************************************************************
  *	Author: Alexandru Burcea
@@ -21,7 +21,7 @@
 
 #define VERSION_BASE	(int)1
 #define VERSION_MAJOR	(int)2
-#define VERSION_MINOR	(int)7
+#define VERSION_MINOR	(int)8
 
 #define UNUSED(X) (void)X      /* To avoid gcc/g++ warnings */
 
@@ -105,7 +105,7 @@ int doBoardInit(int stack)
 	if (dev == -1)
 	{
 		return ERROR;
-	}
+}
 	if (ERROR == i2cMem8Read(dev, I2C_MEM_REVISION_HW_MAJOR_ADD, buff, 1))
 	{
 		printf("IO-PLUS id %d not detected\n", stack);
@@ -218,7 +218,7 @@ int doVersion(int argc, char *argv[])
 {
 	UNUSED(argc);
 	UNUSED(argv);
-	printf("ioplus v%d.%d.%d Copyright (c) 2016 - 2020 Sequent Microsystems\n",
+	printf("ioplus v%d.%d.%d Copyright (c) 2016 - 2023 Sequent Microsystems\n",
 	VERSION_BASE, VERSION_MAJOR, VERSION_MINOR);
 	printf("\nThis is free software with ABSOLUTELY NO WARRANTY.\n");
 	printf("For details type: ioplus -warranty\n");
@@ -2419,6 +2419,8 @@ int doOwbGet(int argc, char *argv[])
 	int resp = 0;
 	int channel = 0;
 	float temp = 0;
+	s16 saux16 = 0;
+	int retry = 3;
 
 	if (argc != 4)
 	{
@@ -2445,20 +2447,24 @@ int doOwbGet(int argc, char *argv[])
 		printf("Invalid channel number, only %d sensors connected!\n", buff[0]);
 		return ERROR;
 	}
-
-	resp = i2cMem8Read(dev, I2C_MEM_1WB_T1 + (channel - 1) *OWB_TEMP_SIZE_B , buff, OWB_TEMP_SIZE_B);
-	if (FAIL == resp)
+	saux16 = -1;
+	retry = 4;
+	while((saux16 == -1) && (retry > 0))
 	{
-		printf("Fail to read one wire bus info!\n");
-		return ERROR;
+		resp = i2cMem8Read(dev, I2C_MEM_1WB_T1 + (channel - 1) *OWB_TEMP_SIZE_B , buff, OWB_TEMP_SIZE_B);
+		if (FAIL == resp)
+		{
+			printf("Fail to read one wire bus info!\n");
+			return ERROR;
+		}
+		memcpy(&saux16, &buff[0], 2);
+		retry --;
 	}
-//	if (buff[0] == 0)
-//	{
-//		printf("No sensor connected!\n");
-//		return OK;
-//	}
-	memcpy(&resp, &buff[0], 2);
-	temp = (float)resp / 100;
+	if(saux16 == -1)
+	{
+	 	return ERROR;
+	}
+	temp = (float)saux16 / 100;
 
 	printf("%0.2f C\n", temp);
 	return OK;

@@ -191,3 +191,9 @@ Return the 8 bytes ID of the selected sensor
 
 **channel** - channel number [1..number of connected sensors]
 
+### owbScam(stack)
+Start scaning procedure
+
+**stack** - stack level, set with jumpers [0..7]
+
+

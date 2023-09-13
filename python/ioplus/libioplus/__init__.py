@@ -397,3 +397,76 @@ def resetOptoEncoderCount(stack, channel):
         raise e
     bus.close()
     return 1
+
+
+def owbGetTemp(stack, channel):
+    I2C_MEM_1WB_DEV = 211
+    I2C_MEM_1WB_T1 = 222
+    if stack < 0 or stack > 7:
+        raise ValueError('Invalid stack level')
+    bus = smbus.SMBus(1)
+    temp = 0
+    try:
+        nr = bus.read_byte_data(DEVICE_ADDRESS + stack, I2C_MEM_1WB_DEV)
+        if channel > nr or channel < 1:
+            bus.close()
+            raise ValueError('Invalid channel number')
+        data = bus.read_word_data(DEVICE_ADDRESS + stack, I2C_MEM_1WB_T1 + 2 * (channel - 1))
+        temp = data / 100
+    except Exception as e:
+        bus.close()
+        raise e
+    bus.close()
+    return temp
+
+def owbGetSnsNo(stack):
+    I2C_MEM_1WB_DEV = 211
+    if stack < 0 or stack > 7:
+        raise ValueError('Invalid stack level')
+    bus = smbus.SMBus(1)
+    try:
+         nr = bus.read_byte_data(DEVICE_ADDRESS + stack, I2C_MEM_1WB_DEV)
+    except Exception as e:
+        bus.close()
+        raise e
+    bus.close()
+    return nr
+
+def owbScan(stack):
+    I2C_MEM_1WB_START_SEARCH = 221
+    if stack < 0 or stack > 7:
+        raise ValueError('Invalid stack level')
+    bus = smbus.SMBus(1)
+    try:
+        bus.write_byte_data(DEVICE_ADDRESS + stack, I2C_MEM_1WB_START_SEARCH,1 )
+    except Exception as e:
+        bus.close()
+        raise e
+    bus.close()   
+    return 1
+
+def owbGetSnsId(stack, channel):
+    I2C_MEM_1WB_ROM_CODE_IDX =212
+    I2C_MEM_1WB_ROM_CODE = 213
+    ROM_CODE_LEN = 8
+    I2C_MEM_1WB_T1 = 222
+    I2C_MEM_1WB_START_SEARCH = 221
+    I2C_MEM_1WB_DEV = 211
+    if stack < 0 or stack > 7:
+        raise ValueError('Invalid stack level')
+    bus = smbus.SMBus(1)
+    temp = 0
+    try:
+        nr = bus.read_byte_data(DEVICE_ADDRESS + stack, I2C_MEM_1WB_DEV)
+        if channel > nr or channel < 1:
+            bus.close()
+            raise ValueError('Invalid channel number') 
+        bus.write_byte_data(DEVICE_ADDRESS + stack, I2C_MEM_1WB_ROM_CODE_IDX, channel - 1)
+        buff = bus.read_i2c_block_data(DEVICE_ADDRESS + stack, I2C_MEM_1WB_ROM_CODE, 8)
+    except Exception as e:
+        bus.close()
+        raise e
+    bus.close()
+    return buff
+
+

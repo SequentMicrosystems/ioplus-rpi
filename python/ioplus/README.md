@@ -170,10 +170,24 @@ Reset the conter
 
 **channel** - channel number [1..4]
 
+### owgGetTemp(stack, channel)
+Read the temperature af one sensor
 
+**stack** - stack level, set with jumpers [0..7]
 
+**channel** - channel number [1..number of connected sensors]
 
+Return temperature in degree Celsius readed from the selected sensor 
 
+### owbGetSnsNo(stack)
+Return the nomber of sensors connected to the one wire port
 
+**stack** - stack level, set with jumpers [0..7]
 
+### owbGetSnsId(stack, channel)
+Return the 8 bytes ID of the selected sensor
+
+**stack** - stack level, set with jumpers [0..7]
+
+**channel** - channel number [1..number of connected sensors]
 

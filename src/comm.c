@@ -188,6 +188,20 @@ int i2cReadDWordAS(int dev, int add, uint32_t* val)
 	return 0;
 }
 
+int i2cReadDWord(int dev, int add, uint32_t* val)
+{
+	uint8_t buff[4];
+	uint32_t read = 50000;
+
+	if (0 != i2cMem8Read(dev, add, buff, 4))
+	{
+		return -1;
+	}
+	memcpy(&read, buff, 4);
+	*val = read;
+	return 0;
+}
+
 
 int i2cReadIntAS(int dev, int add, int* val)
 {

@@ -25,7 +25,7 @@
 
 #define VERSION_BASE	(int)1
 #define VERSION_MAJOR	(int)3
-#define VERSION_MINOR	(int)0
+#define VERSION_MINOR	(int)1
 
 #define UNUSED(X) (void)X      /* To avoid gcc/g++ warnings */
 
@@ -1054,31 +1054,26 @@ int doOdWrite(int argc, char *argv[])
 }
 
 //----------------------------------- OD pulses --------------------------------------------------------
-int odWritePulses(int dev, int ch, int val)
+int odWritePulses(int dev, int ch, unsigned int val)
 {
-	u8 buff[2] =
+	u8 buff[4] =
 	{
 		0,
+		0,
+		0,
 		0};
-	u16 raw = 0;
+	u32 raw = 0;
 
 	if ( (ch < CHANNEL_NR_MIN) || (ch > OD_CH_NR_MAX))
 	{
 		printf("Open drain channel out of range!\n");
 		return ERROR;
 	}
-	if (val < 0)
-	{
-		val = 0;
-	}
-	if (val > 65535)
-	{
-		val = 65535;
-	}
-	raw = (u16)val;
-	memcpy(buff, &raw, 2);
+
+	raw = (u32)val;
+	memcpy(buff, &raw, 4);
 	if (OK
-	!= i2cMem8Write(dev, I2C_MEM_OD_PULSE_CNT_SET + 2 * (ch - 1), buff, 2))
+	!= i2cMem8Write(dev, I2C_MEM_OD_PULSE_CNT_SET + 4 * (ch - 1), buff, 4))
 	{
 		printf("Fail to write!\n");
 		return ERROR;
@@ -1086,9 +1081,9 @@ int odWritePulses(int dev, int ch, int val)
 	return OK;
 }
 
-int odReadPulses(int dev, int ch, int* val)
+int odReadPulses(int dev, int ch, unsigned int* val)
 {
-	u16 raw = 0;
+	u32 raw = 0;
 
 	if ( (ch < CHANNEL_NR_MIN) || (ch > OD_CH_NR_MAX))
 	{
@@ -1096,7 +1091,7 @@ int odReadPulses(int dev, int ch, int* val)
 		return ERROR;
 	}
 	if (OK
-		!= i2cReadWordAS(dev, I2C_MEM_OD_PULSE_CNT_SET + 2 * (ch - 1), &raw))
+		!= i2cReadDWord(dev, I2C_MEM_OD_PULSE_CNT_SET + 4 * (ch - 1), &raw))
 	{
 		printf("Fail to read!\n");
 		return ERROR;
@@ -1117,7 +1112,7 @@ const CliCmdType CMD_OD_CNT_READ =
 int doOdCntRead(int argc, char *argv[])
 {
 	int ch = 0;
-	int val = 0;
+	unsigned int val = 0;
 	int dev = 0;
 
 	dev = doBoardInit(atoi(argv[1]));
@@ -1146,7 +1141,7 @@ const CliCmdType CMD_OD_CNT_WRITE =
 	{	"odcwr",
 		2,
 		&doOdCntWrite,
-		"\todwr:			Write open drain output pulses to perform, value 0..65535. The open-drain channel will output <value> # of pulses 50% fill factor with current pwm frequency\n",
+		"\todcwr:			Write open drain output pulses to perform, value 0..65535. The open-drain channel will output <value> # of pulses 50% fill factor with current pwm frequency\n",
 		"\tUsage:		ioplus <stack> odcwr <channel> <value>\n",
 		"",
 		"\tExample:		ioplus 0 odwr 2 100; set 100 pulses to perform for open drain channel #2 on Board #0\n"
@@ -1156,7 +1151,8 @@ int doOdCntWrite(int argc, char *argv[])
 {
 	int ch = 0;
 	int dev = 0;
-	int value = 0;
+	long int inVal = 0;
+	unsigned int value = 0;
 
 	dev = doBoardInit(atoi(argv[1]));
 	if (dev <= 0)
@@ -1167,7 +1163,8 @@ int doOdCntWrite(int argc, char *argv[])
 	if (argc == 5)
 	{
 		ch = atoi(argv[3]);
-		value = atoi(argv[4]);
+		inVal = atol(argv[4]);
+		value = (unsigned int)inVal;
 		if (OK != odWritePulses(dev, ch, value))
 		{
 			return (FAIL);

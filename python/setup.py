@@ -1,7 +1,7 @@
 import setuptools
 
 setuptools.setup(
-    name='libioplus',
+    name='SMioplus',
     packages=setuptools.find_packages(),
     version='1.0.0',
     license='MIT',

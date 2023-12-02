@@ -55,4 +55,5 @@ dkms.conf
 
 /python/build/
 /python/dist/
-/python/libioplus.egg-info/
+__pycache__/
+/python/SMioplus.egg-info/

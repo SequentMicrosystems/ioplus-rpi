@@ -1,7 +1,7 @@
-import smbus
+import smbus2
 import struct
 
-# bus = smbus.SMBus(1)    # 0 = /dev/i2c-0 (port I2C0), 1 = /dev/i2c-1 (port I2C1)
+# bus = smbus2.SMBus(1)    # 0 = /dev/i2c-0 (port I2C0), 1 = /dev/i2c-1 (port I2C1)
 
 DEVICE_ADDRESS = 0x28  # 7 bit address (will be left shifted to add the read write bit)
 
@@ -13,7 +13,7 @@ def getAdcV(stack, channel):
     if channel < 1 or channel > 8:
         raise ValueError('Invalid channel number')
     ADC_VAL_MV_ADD = 24
-    bus = smbus.SMBus(1)
+    bus = smbus2.SMBus(1)
     dataA = 5000
     data = 6000
     retry = 10
@@ -39,7 +39,7 @@ def getAdcRaw(stack, channel):
     if channel < 1 or channel > 8:
         raise ValueError('Invalid channel number')
     ADC_VAL_RAW_ADD = 8
-    bus = smbus.SMBus(1)
+    bus = smbus2.SMBus(1)
     dataA = 5000
     data = 6000
     retry = 10
@@ -70,7 +70,7 @@ def setDacV(stack, channel, value):
         value = 10;
 
     raw = int(value * 1000)
-    bus = smbus.SMBus(1)
+    bus = smbus2.SMBus(1)
     DAC_VAL_MV_ADD = 40
 
     try:
@@ -88,7 +88,7 @@ def setOdPwm(stack, channel, value):
         raise ValueError('Invalid stack level')
     if channel < 1 or channel > 4:
         raise ValueError('Invalid channel number')
-    bus = smbus.SMBus(1)
+    bus = smbus2.SMBus(1)
     if value < 0:
         value = 0
     if value > 10000:
@@ -108,7 +108,7 @@ def setRelayCh(stack, channel, value):
         raise ValueError('Invalid stack level')
     if channel < 1 or channel > 8:
         raise ValueError('Invalid channel number')
-    bus = smbus.SMBus(1)
+    bus = smbus2.SMBus(1)
     RELAY_SET_ADD = 1
     RELAY_CLR_ADD = 2
     if value == 0:
@@ -132,7 +132,7 @@ def setRelays(stack, value):
         raise ValueError('Invalid stack level')
     if value < 0 or value > 255:
         raise ValueError('Invalid relays value')
-    bus = smbus.SMBus(1)
+    bus = smbus2.SMBus(1)
     RELAY_VAL_ADD = 0;
     try:
         bus.write_byte_data(DEVICE_ADDRESS + stack, RELAY_VAL_ADD, value)
@@ -145,7 +145,7 @@ def setRelays(stack, value):
 def getRelays(stack):
     if stack < 0 or stack > 7:
         raise ValueError('Invalid stack level')
-    bus = smbus.SMBus(1)
+    bus = smbus2.SMBus(1)
     RELAY_VAL_ADD = 0
     valA = 257
     val = 258
@@ -180,7 +180,7 @@ def getOptoCh(stack, channel):
         raise ValueError('Invalid stack level')
     if channel < 1 or channel > 8:
         raise ValueError('Invalid channel number')
-    bus = smbus.SMBus(1)
+    bus = smbus2.SMBus(1)
     OPTO_IN_ADD = 3
     valA = 257
     val = 258
@@ -205,7 +205,7 @@ def getOptoCh(stack, channel):
 def getOpto(stack):
     if stack < 0 or stack > 7:
         raise ValueError('Invalid stack level')
-    bus = smbus.SMBus(1)
+    bus = smbus2.SMBus(1)
     OPTO_IN_ADD = 3
     valA = 257
     val = 258
@@ -229,7 +229,7 @@ def setGpioDir(stack, dir):
         raise ValueError('Invalid stack level')
     if dir < 0 or dir > 15:
         raise ValueError('Invalid channel direction register value (allow 0..15)')
-    bus = smbus.SMBus(1)
+    bus = smbus2.SMBus(1)
     GPIO_DIR_ADD = 7
     try:
         bus.write_byte_data(DEVICE_ADDRESS + stack, GPIO_DIR_ADD, dir)
@@ -243,7 +243,7 @@ def setGpioDir(stack, dir):
 def getGpio(stack):
     if stack < 0 or stack > 7:
         raise ValueError('Invalid stack level')
-    bus = smbus.SMBus(1)
+    bus = smbus2.SMBus(1)
     GPIO_VAL_ADD = 4
     valA = 257
     val = 258
@@ -267,7 +267,7 @@ def setGpioPin(stack, pin, val):
         raise ValueError('Invalid stack level')
     if pin < 1 or pin > 4:
         raise ValueError('Invalid pin number')
-    bus = smbus.SMBus(1)
+    bus = smbus2.SMBus(1)
     GPIO_SET_ADD = 5
     GPIO_CLR_ADD = 6
     try:
@@ -293,7 +293,7 @@ def cfgOptoEdgeCount(stack, channel, state):
         raise ValueError('Invalid edge type 0-none, 1-rising, 2-falling, 3-both')
     I2C_MEM_OPTO_IT_RISING_ADD = 56
     I2C_MEM_OPTO_IT_FALLING_ADD = 57
-    bus = smbus.SMBus(1)
+    bus = smbus2.SMBus(1)
     try:
         rising = bus.read_byte_data(DEVICE_ADDRESS + stack, I2C_MEM_OPTO_IT_RISING_ADD)
         falling = bus.read_byte_data(DEVICE_ADDRESS + stack, I2C_MEM_OPTO_IT_FALLING_ADD)
@@ -320,7 +320,7 @@ def getOptoCount(stack, channel):
     if channel < 1 or channel > 8:
         raise ValueError('Invalid channel number')
     I2C_MEM_OPTO_EDGE_COUNT_ADD = 128
-    bus = smbus.SMBus(1)
+    bus = smbus2.SMBus(1)
     try:
         buff = bus.read_i2c_block_data(DEVICE_ADDRESS + stack, I2C_MEM_OPTO_EDGE_COUNT_ADD + 4 * (channel - 1), 4)
         count = buff[0] + buff[1] * 0x100 + buff[2] * 0x10000 + buff[3] * 0x1000000
@@ -336,7 +336,7 @@ def rstOptoCount(stack, channel):
     if channel < 1 or channel > 8:
         raise ValueError('Invalid channel number')
     I2C_MEM_OPTO_CNT_RST_ADD = 60
-    bus = smbus.SMBus(1)
+    bus = smbus2.SMBus(1)
     try:
         bus.write_byte_data(DEVICE_ADDRESS + stack, I2C_MEM_OPTO_CNT_RST_ADD, channel)
     except Exception as e:
@@ -353,7 +353,7 @@ def cfgOptoEncoder(stack, channel, state):
     if state < 0 or state > 1:
         raise ValueError('Invalid state value 0-off, 1-on')
     I2C_MEM_OPTO_ENC_ENABLE_ADD = 70
-    bus = smbus.SMBus(1)
+    bus = smbus2.SMBus(1)
     try:
         encoders = bus.read_byte_data(DEVICE_ADDRESS + stack, I2C_MEM_OPTO_ENC_ENABLE_ADD)
         if state == 1:
@@ -373,7 +373,7 @@ def getOptoEncoderCount(stack, channel):
     if channel < 1 or channel > 4:
         raise ValueError('Invalid channel number')
     I2C_MEM_OPTO_ENC_COUNT_ADD = 187
-    bus = smbus.SMBus(1)
+    bus = smbus2.SMBus(1)
     try:
         buff = bus.read_i2c_block_data(DEVICE_ADDRESS + stack, I2C_MEM_OPTO_ENC_COUNT_ADD + 4 * (channel - 1), 4)
         count = struct.unpack('i', bytearray(buff)) #int.from_bytes(buff, byteorder='big', signed=True)
@@ -389,7 +389,7 @@ def resetOptoEncoderCount(stack, channel):
     if channel < 1 or channel > 4:
         raise ValueError('Invalid channel number')
     I2C_MEM_OPTO_ENC_CNT_RST_ADD = 72
-    bus = smbus.SMBus(1)
+    bus = smbus2.SMBus(1)
     try:
         bus.write_byte_data(DEVICE_ADDRESS + stack, I2C_MEM_OPTO_ENC_CNT_RST_ADD, channel)
     except Exception as e:
@@ -404,7 +404,7 @@ def owbGetTemp(stack, channel):
     I2C_MEM_1WB_T1 = 222
     if stack < 0 or stack > 7:
         raise ValueError('Invalid stack level')
-    bus = smbus.SMBus(1)
+    bus = smbus2.SMBus(1)
     temp = 0
     try:
         nr = bus.read_byte_data(DEVICE_ADDRESS + stack, I2C_MEM_1WB_DEV)
@@ -423,7 +423,7 @@ def owbGetSnsNo(stack):
     I2C_MEM_1WB_DEV = 211
     if stack < 0 or stack > 7:
         raise ValueError('Invalid stack level')
-    bus = smbus.SMBus(1)
+    bus = smbus2.SMBus(1)
     try:
          nr = bus.read_byte_data(DEVICE_ADDRESS + stack, I2C_MEM_1WB_DEV)
     except Exception as e:
@@ -436,7 +436,7 @@ def owbScan(stack):
     I2C_MEM_1WB_START_SEARCH = 221
     if stack < 0 or stack > 7:
         raise ValueError('Invalid stack level')
-    bus = smbus.SMBus(1)
+    bus = smbus2.SMBus(1)
     try:
         bus.write_byte_data(DEVICE_ADDRESS + stack, I2C_MEM_1WB_START_SEARCH,1 )
     except Exception as e:
@@ -454,7 +454,7 @@ def owbGetSnsId(stack, channel):
     I2C_MEM_1WB_DEV = 211
     if stack < 0 or stack > 7:
         raise ValueError('Invalid stack level')
-    bus = smbus.SMBus(1)
+    bus = smbus2.SMBus(1)
     temp = 0
     try:
         nr = bus.read_byte_data(DEVICE_ADDRESS + stack, I2C_MEM_1WB_DEV)

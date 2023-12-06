@@ -7,7 +7,7 @@ This is the python library to control the [Home Automation Stackable Card for Ra
 ## Install
 
 ```bash
-sudo pip install libioplus
+sudo pip install SMioplus
 ```
 
 ## Usage

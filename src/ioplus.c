@@ -25,7 +25,7 @@
 
 #define VERSION_BASE	(int)1
 #define VERSION_MAJOR	(int)3
-#define VERSION_MINOR	(int)1
+#define VERSION_MINOR	(int)2
 
 #define UNUSED(X) (void)X      /* To avoid gcc/g++ warnings */
 
@@ -2044,9 +2044,9 @@ int pwmFreqSet(int dev, int val)
 	{
 		val = 10;
 	}
-	if (val > 64000)
+	if (val > 65500)
 	{
-		val = 64000;
+		val = 65500;
 	}
 	raw = (u16)val;
 	memcpy(buff, &raw, 2);
@@ -2126,7 +2126,7 @@ int doPwmFreqWrite(int argc, char *argv[])
 	if (argc == 4)
 	{
 		val = atof(argv[3]);
-		if (val < 10 || val > 65000)
+		if (val < 10 || val > 65500)
 		{
 			printf("Invalid pwm frequency value, must be 10..65000 \n");
 			return (FAIL);

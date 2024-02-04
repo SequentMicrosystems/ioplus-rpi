@@ -25,7 +25,7 @@
 
 #define VERSION_BASE	(int)1
 #define VERSION_MAJOR	(int)3
-#define VERSION_MINOR	(int)2
+#define VERSION_MINOR	(int)3
 
 #define UNUSED(X) (void)X      /* To avoid gcc/g++ warnings */
 
@@ -1056,12 +1056,7 @@ int doOdWrite(int argc, char *argv[])
 //----------------------------------- OD pulses --------------------------------------------------------
 int odWritePulses(int dev, int ch, unsigned int val)
 {
-	u8 buff[4] =
-	{
-		0,
-		0,
-		0,
-		0};
+	u8 buff[4] = {0, 0, 0, 0};
 	u32 raw = 0;
 
 	if ( (ch < CHANNEL_NR_MIN) || (ch > OD_CH_NR_MAX))
@@ -1073,7 +1068,7 @@ int odWritePulses(int dev, int ch, unsigned int val)
 	raw = (u32)val;
 	memcpy(buff, &raw, 4);
 	if (OK
-	!= i2cMem8Write(dev, I2C_MEM_OD_PULSE_CNT_SET + 4 * (ch - 1), buff, 4))
+		!= i2cMem8Write(dev, I2C_MEM_OD_PULSE_CNT_SET + 4 * (ch - 1), buff, 4))
 	{
 		printf("Fail to write!\n");
 		return ERROR;
@@ -1081,7 +1076,7 @@ int odWritePulses(int dev, int ch, unsigned int val)
 	return OK;
 }
 
-int odReadPulses(int dev, int ch, unsigned int* val)
+int odReadPulses(int dev, int ch, unsigned int *val)
 {
 	u32 raw = 0;
 
@@ -1090,8 +1085,7 @@ int odReadPulses(int dev, int ch, unsigned int* val)
 		printf("Open drain channel out of range!\n");
 		return ERROR;
 	}
-	if (OK
-		!= i2cReadDWord(dev, I2C_MEM_OD_PULSE_CNT_SET + 4 * (ch - 1), &raw))
+	if (OK != i2cReadDWord(dev, I2C_MEM_OD_PULSE_CNT_SET + 4 * (ch - 1), &raw))
 	{
 		printf("Fail to read!\n");
 		return ERROR;
@@ -1102,9 +1096,7 @@ int odReadPulses(int dev, int ch, unsigned int* val)
 
 int doOdCntRead(int argc, char *argv[]);
 const CliCmdType CMD_OD_CNT_READ =
-	{	"odcrd",
-		2,
-		&doOdCntRead,
+	{"odcrd", 2, &doOdCntRead,
 		"\todcrd:		Read open drain remaining pulses to perform\n",
 		"\tUsage:		ioplus <stack> odcrd <channel>\n", "",
 		"\tExample:		ioplus 0 odcrd 2; Read remaining pulses to perform of open drain channel #2 on Board #0\n"};
@@ -1138,14 +1130,10 @@ int doOdCntRead(int argc, char *argv[])
 
 int doOdCntWrite(int argc, char *argv[]);
 const CliCmdType CMD_OD_CNT_WRITE =
-	{	"odcwr",
-		2,
-		&doOdCntWrite,
+	{"odcwr", 2, &doOdCntWrite,
 		"\todcwr:			Write open drain output pulses to perform, value 0..65535. The open-drain channel will output <value> # of pulses 50% fill factor with current pwm frequency\n",
-		"\tUsage:		ioplus <stack> odcwr <channel> <value>\n",
-		"",
-		"\tExample:		ioplus 0 odwr 2 100; set 100 pulses to perform for open drain channel #2 on Board #0\n"
-	};
+		"\tUsage:		ioplus <stack> odcwr <channel> <value>\n", "",
+		"\tExample:		ioplus 0 odwr 2 100; set 100 pulses to perform for open drain channel #2 on Board #0\n"};
 
 int doOdCntWrite(int argc, char *argv[])
 {
@@ -1178,7 +1166,6 @@ int doOdCntWrite(int argc, char *argv[])
 	}
 	return OK;
 }
-
 
 // ------------------------------- DAC ------------------------------------------------------------------
 int dacGet(int dev, int ch, float *val)
@@ -2058,6 +2045,29 @@ int pwmFreqSet(int dev, int val)
 	return OK;
 }
 
+int pwmChFreqSet(int dev, int ch, int val)
+{
+	u8 buff[2] = {0, 0};
+	u16 raw = 0;
+
+	if (val < 10)
+	{
+		val = 10;
+	}
+	if (val > 65500)
+	{
+		val = 65500;
+	}
+	raw = (u16)val;
+	memcpy(buff, &raw, 2);
+	if (OK != i2cMem8Write(dev, I2C_MEM_OD_PWM_FREQUENCY_CH1 + (ch - 1)*2, buff, 2))
+	{
+		printf("Fail to write!\n");
+		return ERROR;
+	}
+	return OK;
+}
+
 int doPwmFreqRead(int argc, char *argv[]);
 const CliCmdType CMD_PWM_FREQ_READ =
 	{"pwmfrd", 2, &doPwmFreqRead,
@@ -2104,13 +2114,15 @@ int doPwmFreqWrite(int argc, char *argv[]);
 const CliCmdType CMD_PWM_FREQ_WRITE =
 	{"pwmfwr", 2, &doPwmFreqWrite,
 		"\tpwmfwr:		Write open dran output pwm frequency in Hz [10..64000]\n",
-		"\tUsage:		ioplus <stack> pwmfwr <value>\n", "",
+		"\tUsage:		ioplus <stack> pwmfwr <value>\n",
+		"\tUsage:		ioplus <stack> pwmfwr <channel> <value>\n",
 		"\tExample:		ioplus 0 dacwr 200; Set the open-drain output pwm frequency to 200Hz \n"};
 
 int doPwmFreqWrite(int argc, char *argv[])
 {
 	int dev = 0;
 	int val = 0;
+	int channel = 0;
 
 	dev = doBoardInit(atoi(argv[1]));
 	if (dev <= 0)
@@ -2133,6 +2145,28 @@ int doPwmFreqWrite(int argc, char *argv[])
 		}
 
 		if (OK != pwmFreqSet(dev, val))
+		{
+			printf("Fail to write!\n");
+			return (FAIL);
+		}
+		printf("done\n");
+	}
+	else if (argc == 5)
+	{
+		channel = atoi(argv[3]);
+		if (channel < 1 || channel > 4)
+		{
+			printf("Invalid channel number, must be 1..4 \n");
+			return (FAIL);
+		}
+		val = atof(argv[4]);
+		if (val < 10 || val > 65500)
+		{
+			printf("Invalid pwm frequency value, must be 10..65000 \n");
+			return (FAIL);
+		}
+
+		if (OK != pwmChFreqSet(dev, channel, val))
 		{
 			printf("Fail to write!\n");
 			return (FAIL);
@@ -2464,64 +2498,25 @@ int doOwbScan(int argc, char *argv[])
 	return OK;
 }
 
-const CliCmdType *gCmdArray[] = {
-	&CMD_VERSION,
-	&CMD_HELP,
-	&CMD_WAR,
-	&CMD_PINOUT,
-	&CMD_LIST,
-	&CMD_BOARD,
+const CliCmdType *gCmdArray[] = {&CMD_VERSION, &CMD_HELP, &CMD_WAR, &CMD_PINOUT,
+	&CMD_LIST, &CMD_BOARD,
 #ifdef HW_DEBUG
 	&CMD_ERR,
 #endif
-	&CMD_RELAY_WRITE,
-	&CMD_RELAY_READ,
-	&CMD_TEST,
-	&CMD_GPIO_WRITE,
-	&CMD_GPIO_READ,
-	&CMD_GPIO_DIR_WRITE,
-	&CMD_GPIO_DIR_READ,
-	&CMD_GPIO_EDGE_WRITE,
-	&CMD_GPIO_EDGE_READ,
-	&CMD_GPIO_CNT_READ,
-	&CMD_GPIO_CNT_RESET,
-	&CMD_OPTO_READ,
-	&CMD_OPTO_EDGE_READ,
-	&CMD_OPTO_EDGE_WRITE,
-	&CMD_OPTO_CNT_READ,
-	&CMD_OPTO_CNT_RESET,
-	&CMD_OPTO_ENC_WRITE,
-	&CMD_OPTO_ENC_READ,
-	&CMD_OPTO_ENC_CNT_READ,
-	&CMD_OPTO_ENC_CNT_RESET,
-	&CMD_OD_READ,
-	&CMD_OD_WRITE,
-	&CMD_OD_CNT_READ,
-	&CMD_OD_CNT_WRITE,
-	&CMD_DAC_READ,
-	&CMD_DAC_WRITE,
-	&CMD_ADC_READ,
-	&CMD_ADC_READ_MAX,
-	&CMD_ADC_READ_MIN,
-	&CMD_MIN_MAX_SAMPLE_WRITE,
-	&CMD_MIN_MAX_SAMPLE_READ,
-	&CMD_ADC_CAL,
-	&CMD_ADC_CAL_RST,
-	&CMD_DAC_CAL,
-	&CMD_DAC_CAL_RST,
-	&CMD_WDT_RELOAD,
-	&CMD_WDT_SET_PERIOD,
-	&CMD_WDT_GET_PERIOD,
-	&CMD_WDT_SET_INIT_PERIOD,
-	&CMD_WDT_GET_INIT_PERIOD,
-	&CMD_WDT_SET_OFF_PERIOD,
-	&CMD_WDT_GET_OFF_PERIOD,
-	&CMD_IO_TEST,
-	&CMD_PWM_FREQ_READ,
-	&CMD_PWM_FREQ_WRITE,
-	&CMD_OWB_RD,
-	&CMD_OWB_ID_RD,
-	&CMD_OWB_SNS_CNT_RD,
+	&CMD_RELAY_WRITE, &CMD_RELAY_READ, &CMD_TEST, &CMD_GPIO_WRITE,
+	&CMD_GPIO_READ, &CMD_GPIO_DIR_WRITE, &CMD_GPIO_DIR_READ,
+	&CMD_GPIO_EDGE_WRITE, &CMD_GPIO_EDGE_READ, &CMD_GPIO_CNT_READ,
+	&CMD_GPIO_CNT_RESET, &CMD_OPTO_READ, &CMD_OPTO_EDGE_READ,
+	&CMD_OPTO_EDGE_WRITE, &CMD_OPTO_CNT_READ, &CMD_OPTO_CNT_RESET,
+	&CMD_OPTO_ENC_WRITE, &CMD_OPTO_ENC_READ, &CMD_OPTO_ENC_CNT_READ,
+	&CMD_OPTO_ENC_CNT_RESET, &CMD_OD_READ, &CMD_OD_WRITE, &CMD_OD_CNT_READ,
+	&CMD_OD_CNT_WRITE, &CMD_DAC_READ, &CMD_DAC_WRITE, &CMD_ADC_READ,
+	&CMD_ADC_READ_MAX, &CMD_ADC_READ_MIN, &CMD_MIN_MAX_SAMPLE_WRITE,
+	&CMD_MIN_MAX_SAMPLE_READ, &CMD_ADC_CAL, &CMD_ADC_CAL_RST, &CMD_DAC_CAL,
+	&CMD_DAC_CAL_RST, &CMD_WDT_RELOAD, &CMD_WDT_SET_PERIOD, &CMD_WDT_GET_PERIOD,
+	&CMD_WDT_SET_INIT_PERIOD, &CMD_WDT_GET_INIT_PERIOD, &CMD_WDT_SET_OFF_PERIOD,
+	&CMD_WDT_GET_OFF_PERIOD, &CMD_IO_TEST, &CMD_PWM_FREQ_READ,
+	&CMD_PWM_FREQ_WRITE, &CMD_OWB_RD, &CMD_OWB_ID_RD, &CMD_OWB_SNS_CNT_RD,
 	&CMD_OWB_SCAN,
 	NULL}; //null terminated array of cli structure pointers
 

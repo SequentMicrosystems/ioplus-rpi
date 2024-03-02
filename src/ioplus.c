@@ -25,7 +25,7 @@
 
 #define VERSION_BASE	(int)1
 #define VERSION_MAJOR	(int)3
-#define VERSION_MINOR	(int)3
+#define VERSION_MINOR	(int)4
 
 #define UNUSED(X) (void)X      /* To avoid gcc/g++ warnings */
 
@@ -1076,6 +1076,26 @@ int odWritePulses(int dev, int ch, unsigned int val)
 	return OK;
 }
 
+int odResetPulses(int dev, int ch)
+{
+	u8 buff[4] = {0, 0, 0, 0};
+
+	if ( (ch < CHANNEL_NR_MIN) || (ch > OD_CH_NR_MAX))
+	{
+		printf("Open drain channel out of range!\n");
+		return ERROR;
+	}
+
+	buff[0] = 0x55;
+	if (OK
+		!= i2cMem8Write(dev, I2C_MEM_OD_P_RST1 +  (ch - 1), buff, 1))
+	{
+		printf("Fail to write!\n");
+		return ERROR;
+	}
+	return OK;
+}
+
 int odReadPulses(int dev, int ch, unsigned int *val)
 {
 	u32 raw = 0;
@@ -1162,6 +1182,44 @@ int doOdCntWrite(int argc, char *argv[])
 	else
 	{
 		printf("Invalid params number:\n %s", CMD_OD_WRITE.usage1);
+		return (FAIL);
+	}
+	return OK;
+}
+
+
+int doOdCntReset(int argc, char *argv[]);
+const CliCmdType CMD_OD_CNT_RST =
+	{"odcrst", 2, &doOdCntReset,
+		"\todcrst:			Reset open drain output pulses to perform\n",
+		"\tUsage:		ioplus <stack> odcrst <channel>\n", "",
+		"\tExample:		ioplus 0 odwr 2; stop pulses for open drain channel #2 on Board #0\n"};
+
+int doOdCntReset(int argc, char *argv[])
+{
+	int ch = 0;
+	int dev = 0;
+
+
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		return (FAIL);
+	}
+
+	if (argc == 4)
+	{
+		ch = atoi(argv[3]);
+
+		if (OK != odResetPulses(dev, ch))
+		{
+			return (FAIL);
+		}
+		printf("done\n");
+	}
+	else
+	{
+		printf("Invalid params number:\n %s", CMD_OD_CNT_RST.usage1);
 		return (FAIL);
 	}
 	return OK;
@@ -2510,7 +2568,7 @@ const CliCmdType *gCmdArray[] = {&CMD_VERSION, &CMD_HELP, &CMD_WAR, &CMD_PINOUT,
 	&CMD_OPTO_EDGE_WRITE, &CMD_OPTO_CNT_READ, &CMD_OPTO_CNT_RESET,
 	&CMD_OPTO_ENC_WRITE, &CMD_OPTO_ENC_READ, &CMD_OPTO_ENC_CNT_READ,
 	&CMD_OPTO_ENC_CNT_RESET, &CMD_OD_READ, &CMD_OD_WRITE, &CMD_OD_CNT_READ,
-	&CMD_OD_CNT_WRITE, &CMD_DAC_READ, &CMD_DAC_WRITE, &CMD_ADC_READ,
+	&CMD_OD_CNT_WRITE, &CMD_OD_CNT_RST, &CMD_DAC_READ, &CMD_DAC_WRITE, &CMD_ADC_READ,
 	&CMD_ADC_READ_MAX, &CMD_ADC_READ_MIN, &CMD_MIN_MAX_SAMPLE_WRITE,
 	&CMD_MIN_MAX_SAMPLE_READ, &CMD_ADC_CAL, &CMD_ADC_CAL_RST, &CMD_DAC_CAL,
 	&CMD_DAC_CAL_RST, &CMD_WDT_RELOAD, &CMD_WDT_SET_PERIOD, &CMD_WDT_GET_PERIOD,

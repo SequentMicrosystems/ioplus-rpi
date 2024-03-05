@@ -1067,8 +1067,13 @@ int odWritePulses(int dev, int ch, unsigned int val)
 
 	raw = (u32)val;
 	memcpy(buff, &raw, 4);
-	if (OK
-		!= i2cMem8Write(dev, I2C_MEM_OD_PULSE_CNT_SET + 4 * (ch - 1), buff, 4))
+	if (OK != i2cMem8Write(dev, I2C_MEM_OD_P_SET_VALUE, buff, 4)) // write the value
+	{
+		printf("Fail to write!\n");
+		return ERROR;
+	}
+	buff[0] = ch;
+	if (OK != i2cMem8Write(dev, I2C_MEM_OD_P_SET_CMD, buff, 1))// update command
 	{
 		printf("Fail to write!\n");
 		return ERROR;
@@ -1078,22 +1083,7 @@ int odWritePulses(int dev, int ch, unsigned int val)
 
 int odResetPulses(int dev, int ch)
 {
-	u8 buff[4] = {0, 0, 0, 0};
-
-	if ( (ch < CHANNEL_NR_MIN) || (ch > OD_CH_NR_MAX))
-	{
-		printf("Open drain channel out of range!\n");
-		return ERROR;
-	}
-
-	buff[0] = 0x55;
-	if (OK
-		!= i2cMem8Write(dev, I2C_MEM_OD_P_RST1 +  (ch - 1), buff, 1))
-	{
-		printf("Fail to write!\n");
-		return ERROR;
-	}
-	return OK;
+	return odWritePulses(dev, ch, 0);
 }
 
 int odReadPulses(int dev, int ch, unsigned int *val)
@@ -1187,7 +1177,6 @@ int doOdCntWrite(int argc, char *argv[])
 	return OK;
 }
 
-
 int doOdCntReset(int argc, char *argv[]);
 const CliCmdType CMD_OD_CNT_RST =
 	{"odcrst", 2, &doOdCntReset,
@@ -1199,7 +1188,6 @@ int doOdCntReset(int argc, char *argv[])
 {
 	int ch = 0;
 	int dev = 0;
-
 
 	dev = doBoardInit(atoi(argv[1]));
 	if (dev <= 0)
@@ -2118,7 +2106,9 @@ int pwmChFreqSet(int dev, int ch, int val)
 	}
 	raw = (u16)val;
 	memcpy(buff, &raw, 2);
-	if (OK != i2cMem8Write(dev, I2C_MEM_OD_PWM_FREQUENCY_CH1 + (ch - 1)*2, buff, 2))
+	if (OK
+		!= i2cMem8Write(dev, I2C_MEM_OD_PWM_FREQUENCY_CH1 + (ch - 1) * 2, buff,
+			2))
 	{
 		printf("Fail to write!\n");
 		return ERROR;
@@ -2568,14 +2558,14 @@ const CliCmdType *gCmdArray[] = {&CMD_VERSION, &CMD_HELP, &CMD_WAR, &CMD_PINOUT,
 	&CMD_OPTO_EDGE_WRITE, &CMD_OPTO_CNT_READ, &CMD_OPTO_CNT_RESET,
 	&CMD_OPTO_ENC_WRITE, &CMD_OPTO_ENC_READ, &CMD_OPTO_ENC_CNT_READ,
 	&CMD_OPTO_ENC_CNT_RESET, &CMD_OD_READ, &CMD_OD_WRITE, &CMD_OD_CNT_READ,
-	&CMD_OD_CNT_WRITE, &CMD_OD_CNT_RST, &CMD_DAC_READ, &CMD_DAC_WRITE, &CMD_ADC_READ,
-	&CMD_ADC_READ_MAX, &CMD_ADC_READ_MIN, &CMD_MIN_MAX_SAMPLE_WRITE,
-	&CMD_MIN_MAX_SAMPLE_READ, &CMD_ADC_CAL, &CMD_ADC_CAL_RST, &CMD_DAC_CAL,
-	&CMD_DAC_CAL_RST, &CMD_WDT_RELOAD, &CMD_WDT_SET_PERIOD, &CMD_WDT_GET_PERIOD,
-	&CMD_WDT_SET_INIT_PERIOD, &CMD_WDT_GET_INIT_PERIOD, &CMD_WDT_SET_OFF_PERIOD,
-	&CMD_WDT_GET_OFF_PERIOD, &CMD_IO_TEST, &CMD_PWM_FREQ_READ,
-	&CMD_PWM_FREQ_WRITE, &CMD_OWB_RD, &CMD_OWB_ID_RD, &CMD_OWB_SNS_CNT_RD,
-	&CMD_OWB_SCAN,
+	&CMD_OD_CNT_WRITE, &CMD_OD_CNT_RST, &CMD_DAC_READ, &CMD_DAC_WRITE,
+	&CMD_ADC_READ, &CMD_ADC_READ_MAX, &CMD_ADC_READ_MIN,
+	&CMD_MIN_MAX_SAMPLE_WRITE, &CMD_MIN_MAX_SAMPLE_READ, &CMD_ADC_CAL,
+	&CMD_ADC_CAL_RST, &CMD_DAC_CAL, &CMD_DAC_CAL_RST, &CMD_WDT_RELOAD,
+	&CMD_WDT_SET_PERIOD, &CMD_WDT_GET_PERIOD, &CMD_WDT_SET_INIT_PERIOD,
+	&CMD_WDT_GET_INIT_PERIOD, &CMD_WDT_SET_OFF_PERIOD, &CMD_WDT_GET_OFF_PERIOD,
+	&CMD_IO_TEST, &CMD_PWM_FREQ_READ, &CMD_PWM_FREQ_WRITE, &CMD_OWB_RD,
+	&CMD_OWB_ID_RD, &CMD_OWB_SNS_CNT_RD, &CMD_OWB_SCAN,
 	NULL}; //null terminated array of cli structure pointers
 
 int main(int argc, char *argv[])

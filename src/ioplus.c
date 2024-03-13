@@ -25,7 +25,7 @@
 
 #define VERSION_BASE	(int)1
 #define VERSION_MAJOR	(int)3
-#define VERSION_MINOR	(int)4
+#define VERSION_MINOR	(int)5
 
 #define UNUSED(X) (void)X      /* To avoid gcc/g++ warnings */
 
@@ -1054,9 +1054,11 @@ int doOdWrite(int argc, char *argv[])
 }
 
 //----------------------------------- OD pulses --------------------------------------------------------
+#define SINGLE_TRANSFER
+
 int odWritePulses(int dev, int ch, unsigned int val)
 {
-	u8 buff[4] = {0, 0, 0, 0};
+	u8 buff[5] = {0, 0, 0, 0,0};
 	u32 raw = 0;
 
 	if ( (ch < CHANNEL_NR_MIN) || (ch > OD_CH_NR_MAX))
@@ -1064,9 +1066,19 @@ int odWritePulses(int dev, int ch, unsigned int val)
 		printf("Open drain channel out of range!\n");
 		return ERROR;
 	}
-
 	raw = (u32)val;
 	memcpy(buff, &raw, 4);
+
+#ifdef SINGLE_TRANSFER
+	buff[4] = ch;
+	if (OK != i2cMem8Write(dev, I2C_MEM_OD_P_SET_VALUE, buff, 5)) // write the value
+		{
+			printf("Fail to write!\n");
+			return ERROR;
+		}
+
+#else
+
 	if (OK != i2cMem8Write(dev, I2C_MEM_OD_P_SET_VALUE, buff, 4)) // write the value
 	{
 		printf("Fail to write!\n");
@@ -1078,6 +1090,7 @@ int odWritePulses(int dev, int ch, unsigned int val)
 		printf("Fail to write!\n");
 		return ERROR;
 	}
+#endif
 	return OK;
 }
 

@@ -236,6 +236,36 @@ int gpioCountGet(int dev, u8 channel, u32 *val)
 	return OK;
 }
 
+//*********************************** for PLC08Pi only ***************************************
+int gpioEncGetCnt(int dev, int *val)
+{
+	if (NULL == val)
+	{
+		return ERROR;
+	}
+
+	if (OK
+		!= i2cReadIntAS(dev,
+			I2C_MEM_GPIO_ENC_COUNT_ADD , val))
+	{
+		return ERROR;
+	}
+	return OK;
+}
+
+int gpioEncRstCnt(int dev)
+{
+	u8 val = 1;
+
+	if (FAIL == i2cMem8Write(dev, I2C_MEM_GPIO_ENC_CNT_RST_ADD, &val, 1))
+	{
+		return ERROR;
+	}
+	return OK;
+}
+
+//******************************************************************************************
+
 int gpioCountReset(int dev, u8 channel)
 {
 
@@ -682,3 +712,60 @@ int doGpioCntRst(int argc, char *argv[])
 	}
 	return OK;
 }
+
+//*********************************** for PLC08Pi only ***************************************
+int doGpioEncoderCntRead(int argc, char *argv[])
+{
+
+	int val = 0;
+	int dev = 0;
+
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		return ERROR;
+	}
+
+	if (argc == 3)
+	{
+
+		if (OK != gpioEncGetCnt(dev, &val))
+		{
+			printf("Fail to read!\n");
+			return ERROR;
+		}
+		printf("%d\n", val);
+	}
+	else
+	{
+		return ARG_CNT_ERR;
+	}
+	return OK;
+}
+
+int doGpioEncoderCntReset(int argc, char *argv[])
+{
+
+	int dev = 0;
+
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		return ERROR;
+	}
+
+	if (argc == 3)
+	{
+		if (OK != gpioEncRstCnt(dev))
+		{
+			printf("Fail to reset!\n");
+			return ERROR;
+		}
+	}
+	else
+	{
+		return ARG_CNT_ERR;
+	}
+	return OK;
+}
+//********************************************************************************************

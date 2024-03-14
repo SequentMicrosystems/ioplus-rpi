@@ -166,6 +166,10 @@ int doGpioEdgeRead(int argc, char *argv[]);
 int doGpioCntRead(int argc, char *argv[]);
 int doGpioCntRst(int argc, char *argv[]);
 int doGpioWrite(int argc, char *argv[]);
+//*********************************** for PLC08Pi only ***************************************
+int doGpioEncoderCntRead(int argc, char *argv[]);
+int doGpioEncoderCntReset(int argc, char *argv[]);
+//********************************************************************************************
 
 int optoChGet(int dev, u8 channel, OutStateEnumType *state);
 int doOptoRead(int argc, char *argv[]);

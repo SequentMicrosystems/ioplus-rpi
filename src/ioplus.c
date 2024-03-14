@@ -858,6 +858,19 @@ const CliCmdType CMD_GPIO_CNT_RESET =
 		"\tUsage:		ioplus <stack> gpiocntrst <channel>\n", "",
 		"\tExample:		ioplus 0 gpiocntrst 2; Reset contor of Gpio pin #2 on Board #0\n"};
 
+const CliCmdType CMD_GPIO_ENC_CNT_READ =
+	{"cntencrd", 2, &doGpioEncoderCntRead,
+		"\tcntencrd:	Read PLC Pi08 encoder count \n",
+		"\tUsage:		ioplus <stack> cntencrd \n", "",
+		"\tExample:		ioplus 0 cntencrd ; Read couter of the PLC Pi08 encoder \n"};
+
+const CliCmdType CMD_GPIO_ENC_CNT_RESET =
+	{"cntencrst", 2, &doGpioEncoderCntReset,
+		"\tcntencrst:	Reset PLC Pi08 encoder count \n",
+		"\tUsage:		ioplus <stack> cntencrst \n", "",
+		"\tExample:		ioplus 0 cntencrst 2; Reset contor of the PLC Pi08 encoder\n"};
+
+
 const CliCmdType CMD_OPTO_READ =
 	{"optrd", 2, &doOptoRead, "\toptrd:		Read optocoupled inputs status\n",
 		"\tUsage:		ioplus <stack> optrd <channel>\n",
@@ -2554,7 +2567,8 @@ const CliCmdType *gCmdArray[] = {&CMD_VERSION, &CMD_HELP, &CMD_WAR, &CMD_PINOUT,
 	&CMD_RELAY_WRITE, &CMD_RELAY_READ, &CMD_TEST, &CMD_GPIO_WRITE,
 	&CMD_GPIO_READ, &CMD_GPIO_DIR_WRITE, &CMD_GPIO_DIR_READ,
 	&CMD_GPIO_EDGE_WRITE, &CMD_GPIO_EDGE_READ, &CMD_GPIO_CNT_READ,
-	&CMD_GPIO_CNT_RESET, &CMD_OPTO_READ, &CMD_OPTO_EDGE_READ,
+	&CMD_GPIO_CNT_RESET,&CMD_GPIO_ENC_CNT_READ,
+	&CMD_GPIO_ENC_CNT_RESET, &CMD_OPTO_READ, &CMD_OPTO_EDGE_READ,
 	&CMD_OPTO_EDGE_WRITE, &CMD_OPTO_CNT_READ, &CMD_OPTO_CNT_RESET,
 	&CMD_OPTO_ENC_WRITE, &CMD_OPTO_ENC_READ, &CMD_OPTO_ENC_CNT_READ,
 	&CMD_OPTO_ENC_CNT_RESET, &CMD_OD_READ, &CMD_OD_WRITE, &CMD_OD_CNT_READ,

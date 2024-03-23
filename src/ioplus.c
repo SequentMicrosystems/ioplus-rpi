@@ -870,6 +870,13 @@ const CliCmdType CMD_GPIO_ENC_CNT_RESET =
 		"\tUsage:		ioplus <stack> cntencrst \n", "",
 		"\tExample:		ioplus 0 cntencrst 2; Reset contor of the PLC Pi08 encoder\n"};
 
+const CliCmdType CMD_OPTO_OD_CMD_SET =
+	{"incmd", 2, &doInCmdSet,
+		"\tincmd:	Set PLC Pi08 command for input channel \n",
+		"\tUsage:		ioplus <stack> incmd <inCh> <outCh> <cnt>\n", "",
+		"\tExample:		ioplus 0 incmd 2 1 1000; PLC Pi08 od channel 1 will start 1000 pulses on rising edge of the input channel 2\n"};
+
+
 
 const CliCmdType CMD_OPTO_READ =
 	{"optrd", 2, &doOptoRead, "\toptrd:		Read optocoupled inputs status\n",
@@ -2593,6 +2600,7 @@ const CliCmdType *gCmdArray[] = {&CMD_VERSION, &CMD_HELP, &CMD_WAR, &CMD_PINOUT,
 	&CMD_WDT_GET_INIT_PERIOD, &CMD_WDT_SET_OFF_PERIOD, &CMD_WDT_GET_OFF_PERIOD,
 	&CMD_IO_TEST, &CMD_PWM_FREQ_READ, &CMD_PWM_FREQ_WRITE, &CMD_OWB_RD,
 	&CMD_OWB_ID_RD, &CMD_OWB_SNS_CNT_RD, &CMD_OWB_SCAN,
+	&CMD_OPTO_OD_CMD_SET,
 	NULL}; //null terminated array of cli structure pointers
 
 int main(int argc, char *argv[])

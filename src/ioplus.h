@@ -22,7 +22,6 @@
 #define OWB_TEMP_SIZE_B 2
 #define OWB_SENS_CNT 8
 
-
 typedef enum
 {
 	I2C_MEM_RELAY_VAL_ADD = 0,
@@ -65,7 +64,8 @@ typedef enum
 	I2C_MEM_GPIO_ENC_CNT_RST_ADD,
 
 	I2C_MEM_OD_PULSE_CNT_SET,
-	I2C_MEM_OD_PULSE_CNT_SET_END_ADD = I2C_MEM_OD_PULSE_CNT_SET + OD_CH_NO * COUNTER_SIZE, //ADC_RAW_VAL_SIZE,
+	I2C_MEM_OD_PULSE_CNT_SET_END_ADD = I2C_MEM_OD_PULSE_CNT_SET
+		+ OD_CH_NO * COUNTER_SIZE, //ADC_RAW_VAL_SIZE,
 	I2C_MEM_OD_PWM_FREQUENCY_CH1 = I2C_MEM_OD_PULSE_CNT_SET_END_ADD,
 	I2C_MEM_OD_PWM_FREQUENCY_CH2 = I2C_MEM_OD_PWM_FREQUENCY_CH1 + 2,
 	I2C_MEM_OD_PWM_FREQUENCY_CH3 = I2C_MEM_OD_PWM_FREQUENCY_CH2 + 2,
@@ -94,24 +94,28 @@ typedef enum
 		+ COUNTER_SIZE * OPTO_CH_NO, //!gap
 	I2C_MEM_OD_PWM_FREQUENCY, //2 bytes
 	I2C_MEM_MIN_MAX_SAMPLES = I2C_MEM_OD_PWM_FREQUENCY + 2,
-	I2C_MEM_OD_P_SET_VALUE,// set value for od pulses in32
-		I2C_MEM_OD_P_SET_CMD = I2C_MEM_OD_P_SET_VALUE + 4,
+	I2C_MEM_OD_P_SET_VALUE, // set value for od pulses in32
+	I2C_MEM_OD_P_SET_CMD = I2C_MEM_OD_P_SET_VALUE + 4,
 
 	I2C_MEM_ADD_RESERVED = 0xaa,
-	I2C_MEM_GPIO_EDGE_COUNT_ADD,
+	//share the pulse command on inputs with gpio edge count addreses wich are not used
+	I2C_MEM_PULSE_COUNTER_SET,
+	I2C_MEM_OD_CH_SET = I2C_MEM_PULSE_COUNTER_SET + COUNTER_SIZE,
+	I2C_MEM_OPTO_CH_SET,
+	I2C_MEM_GPIO_EDGE_COUNT_ADD = 0xab,
 	I2C_MEM_OPTO_ENC_COUNT_ADD = I2C_MEM_GPIO_EDGE_COUNT_ADD
 		+ COUNTER_SIZE * GPIO_CH_NO,
 	I2C_MEM_GPIO_ENC_COUNT_ADD = I2C_MEM_OPTO_ENC_COUNT_ADD
 		+ COUNTER_SIZE * OPTO_CH_NO / 2,
 	I2C_MEM_GPIO_ENC_COUNT_END_ADD = I2C_MEM_GPIO_ENC_COUNT_ADD
 		+ COUNTER_SIZE * GPIO_CH_NO / 2,
-   I2C_MEM_1WB_DEV = I2C_MEM_GPIO_ENC_COUNT_END_ADD,
-	I2C_MEM_1WB_ROM_CODE_IDX ,
-	I2C_MEM_1WB_ROM_CODE,//rom code 64 bits
+	I2C_MEM_1WB_DEV = I2C_MEM_GPIO_ENC_COUNT_END_ADD,
+	I2C_MEM_1WB_ROM_CODE_IDX,
+	I2C_MEM_1WB_ROM_CODE, //rom code 64 bits
 	I2C_MEM_1WB_ROM_CODE_END = I2C_MEM_1WB_ROM_CODE + 7,
 	I2C_MEM_1WB_START_SEARCH,
-		I2C_MEM_1WB_T1,
-		I2C_MEM_1WB_T_END = I2C_MEM_1WB_T1 + OWB_SENS_CNT * OWB_TEMP_SIZE_B,
+	I2C_MEM_1WB_T1,
+	I2C_MEM_1WB_T_END = I2C_MEM_1WB_T1 + OWB_SENS_CNT * OWB_TEMP_SIZE_B,
 	I2C_MEM_ADC_MAX = I2C_MEM_1WB_T_END,
 	I2C_MEM_ADC_MIN = I2C_MEM_ADC_MAX + 2 * 4,
 	SLAVE_BUFF_SIZE = 255
@@ -154,7 +158,6 @@ int adcGet(int dev, int ch, float *val);
 int odSet(int dev, int ch, float val);
 int dacSet(int dev, int ch, float val);
 
-
 int gpioChSet(int dev, u8 channel, OutStateEnumType state);
 int gpioChGet(int dev, u8 channel, OutStateEnumType *state);
 int gpioChDirSet(int dev, u8 channel, u8 state);
@@ -169,6 +172,7 @@ int doGpioWrite(int argc, char *argv[]);
 //*********************************** for PLC08Pi only ***************************************
 int doGpioEncoderCntRead(int argc, char *argv[]);
 int doGpioEncoderCntReset(int argc, char *argv[]);
+int doInCmdSet(int argc, char *argv[]);
 //********************************************************************************************
 
 int optoChGet(int dev, u8 channel, OutStateEnumType *state);

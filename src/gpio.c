@@ -244,9 +244,7 @@ int gpioEncGetCnt(int dev, int *val)
 		return ERROR;
 	}
 
-	if (OK
-		!= i2cReadIntAS(dev,
-			I2C_MEM_GPIO_ENC_COUNT_ADD , val))
+	if (OK != i2cReadIntAS(dev, I2C_MEM_GPIO_ENC_COUNT_ADD, val))
 	{
 		return ERROR;
 	}
@@ -258,6 +256,46 @@ int gpioEncRstCnt(int dev)
 	u8 val = 1;
 
 	if (FAIL == i2cMem8Write(dev, I2C_MEM_GPIO_ENC_CNT_RST_ADD, &val, 1))
+	{
+		return ERROR;
+	}
+	return OK;
+}
+
+/**
+ * Set update pulses event for one input channel
+ * Params:
+ * 	dev - I2C port
+ * 	inCh - digital input channel associated with update event[1..8]
+ * 	outCh - Open drain pulse output channel number [1..4]
+ * 	count - counter value to be updated [0..2^24 - 1]
+ * 	enable - 0/1 disable/enable event
+ */
+
+int inCmdSet(int dev, u8 inCh, u8 outCh, u32 count, u8 enable)
+{
+	u8 buff[6];
+
+	if ( (inCh > OPTO_CH_NO) || (inCh == 0))
+	{
+		return ERROR;
+	}
+	if ( outCh > OD_CH_NO)
+	{
+		return ERROR;
+	}
+	memcpy(buff, &count, sizeof(u32));
+	buff[5] = inCh;
+
+	if (enable)
+	{
+		buff[4] = outCh;
+	}
+	else
+	{
+		buff[4] = 0;
+	}
+	if (FAIL == i2cMem8Write(dev, I2C_MEM_PULSE_COUNTER_SET, buff, 6))
 	{
 		return ERROR;
 	}
@@ -760,6 +798,57 @@ int doGpioEncoderCntReset(int argc, char *argv[])
 		{
 			printf("Fail to reset!\n");
 			return ERROR;
+		}
+	}
+	else
+	{
+		return ARG_CNT_ERR;
+	}
+	return OK;
+}
+
+int doInCmdSet(int argc, char *argv[])
+{
+	int dev = 0;
+	int inCh = 0;
+	int outCh = 0;
+	int count = 0;
+
+	if (argc == 6)
+	{
+		inCh = atoi(argv[3]);
+		if (inCh < 1 || inCh > 8)
+		{
+			printf("Invalid opto in channel # [1..8]\n");
+			return ERROR;
+		}
+
+		outCh = atoi(argv[4]);
+		if (outCh > 4 || outCh < 0)
+		{
+			printf("Invalid OD output channel # [0..4]\n");
+			return ERROR;
+		}
+
+		count = atoi(argv[5]);
+		if (count < 0)
+		{
+			printf("Invalid counter value \n");
+			return ERROR;
+		}
+
+		dev = doBoardInit(atoi(argv[1]));
+		if (dev <= 0)
+		{
+			return ERROR;
+		}
+		if (outCh == 0)
+		{
+			return inCmdSet(dev, (u8)inCh, (u8)outCh, count, 0);
+		}
+		else
+		{
+			return inCmdSet(dev, (u8)inCh, (u8)outCh, count, 1);
 		}
 	}
 	else

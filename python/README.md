@@ -204,7 +204,7 @@ Reset the conter
 **channel** - channel number [1..4]
 
 ### owgGetTemp(stack, channel)
-Read the temperature af one sensor
+Read the temperature of one sensor
 
 **stack** - stack level, set with jumpers [0..7]
 

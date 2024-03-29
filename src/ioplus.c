@@ -2510,7 +2510,7 @@ int doOwbIdGet(int argc, char *argv[])
 
 	memcpy(&romID, &buff[0], 8);
 
-	printf("0x%llx\n", romID);
+	printf("0x%lx\n", romID);
 	return OK;
 }
 

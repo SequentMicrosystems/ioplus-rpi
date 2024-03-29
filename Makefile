@@ -35,7 +35,7 @@ install: ioplus
 	$Q echo "[Install]"
 	$Q cp ioplus		$(DESTDIR)$(PREFIX)/bin
 ifneq ($(WIRINGPI_SUID),0)
-	$Q chown root.root	$(DESTDIR)$(PREFIX)/bin/ioplus
+	$Q chown root:root	$(DESTDIR)$(PREFIX)/bin/ioplus
 	$Q chmod 4755		$(DESTDIR)$(PREFIX)/bin/ioplus
 endif
 #	$Q mkdir -p		$(DESTDIR)$(PREFIX)/man/man1

@@ -25,11 +25,16 @@
 
 #define VERSION_BASE	(int)1
 #define VERSION_MAJOR	(int)3
-#define VERSION_MINOR	(int)5
+#define VERSION_MINOR	(int)6
 
 #define UNUSED(X) (void)X      /* To avoid gcc/g++ warnings */
 
+<<<<<<< HEAD
 #define THREAD_SAFE
+#define MOVE_PROFILE
+=======
+//#define THREAD_SAFE
+>>>>>>> 8ef71fc5cb86e9ef80a966a5187d017346a52888
 
 u8 gHwVer = 0;
 
@@ -858,25 +863,21 @@ const CliCmdType CMD_GPIO_CNT_RESET =
 		"\tUsage:		ioplus <stack> gpiocntrst <channel>\n", "",
 		"\tExample:		ioplus 0 gpiocntrst 2; Reset contor of Gpio pin #2 on Board #0\n"};
 
-const CliCmdType CMD_GPIO_ENC_CNT_READ =
-	{"cntencrd", 2, &doGpioEncoderCntRead,
-		"\tcntencrd:	Read PLC Pi08 encoder count \n",
-		"\tUsage:		ioplus <stack> cntencrd \n", "",
-		"\tExample:		ioplus 0 cntencrd ; Read couter of the PLC Pi08 encoder \n"};
+const CliCmdType CMD_GPIO_ENC_CNT_READ = {"cntencrd", 2, &doGpioEncoderCntRead,
+	"\tcntencrd:	Read PLC Pi08 encoder count \n",
+	"\tUsage:		ioplus <stack> cntencrd \n", "",
+	"\tExample:		ioplus 0 cntencrd ; Read couter of the PLC Pi08 encoder \n"};
 
-const CliCmdType CMD_GPIO_ENC_CNT_RESET =
-	{"cntencrst", 2, &doGpioEncoderCntReset,
-		"\tcntencrst:	Reset PLC Pi08 encoder count \n",
-		"\tUsage:		ioplus <stack> cntencrst \n", "",
-		"\tExample:		ioplus 0 cntencrst 2; Reset contor of the PLC Pi08 encoder\n"};
+const CliCmdType CMD_GPIO_ENC_CNT_RESET = {"cntencrst", 2,
+	&doGpioEncoderCntReset, "\tcntencrst:	Reset PLC Pi08 encoder count \n",
+	"\tUsage:		ioplus <stack> cntencrst \n", "",
+	"\tExample:		ioplus 0 cntencrst 2; Reset contor of the PLC Pi08 encoder\n"};
 
 const CliCmdType CMD_OPTO_OD_CMD_SET =
 	{"incmd", 2, &doInCmdSet,
 		"\tincmd:	Set PLC Pi08 command for input channel \n",
 		"\tUsage:		ioplus <stack> incmd <inCh> <outCh> <cnt>\n", "",
 		"\tExample:		ioplus 0 incmd 2 1 1000; PLC Pi08 od channel 1 will start 1000 pulses on rising edge of the input channel 2\n"};
-
-
 
 const CliCmdType CMD_OPTO_READ =
 	{"optrd", 2, &doOptoRead, "\toptrd:		Read optocoupled inputs status\n",
@@ -1078,10 +1079,10 @@ int doOdWrite(int argc, char *argv[])
 
 int odWritePulses(int dev, int ch, unsigned int val)
 {
-	u8 buff[5] = {0, 0, 0, 0,0};
+	u8 buff[5] = {0, 0, 0, 0, 0};
 	u32 raw = 0;
 
-	if ( (ch < CHANNEL_NR_MIN) || (ch > OD_CH_NR_MAX))
+	if ( (ch < CHANNEL_NR_MIN) || (ch > 2 * OD_CH_NR_MAX))// channel from 5 to 8 are channel 1 to 4 in oposite direction
 	{
 		printf("Open drain channel out of range!\n");
 		return ERROR;
@@ -1092,10 +1093,10 @@ int odWritePulses(int dev, int ch, unsigned int val)
 #ifdef SINGLE_TRANSFER
 	buff[4] = ch;
 	if (OK != i2cMem8Write(dev, I2C_MEM_OD_P_SET_VALUE, buff, 5)) // write the value
-		{
-			printf("Fail to write!\n");
-			return ERROR;
-		}
+	{
+		printf("Fail to write!\n");
+		return ERROR;
+	}
 
 #else
 
@@ -2261,6 +2262,104 @@ int doPwmFreqWrite(int argc, char *argv[])
 	}
 	return OK;
 }
+#define MAX_ACC 60000
+#define MAX_SPEED 60000
+#define MIN_SPEED 10
+
+int odOutMoveSet(int dev, int ch, int acc, int dec, int minSpd, int maxSpd)
+{
+	uint8_t buff[8];
+	uint16_t aux16 = 0;
+
+	if (ch <= 0 || ch > 4)
+	{
+		printf("invalid Channel number [1..4]\n");
+		return -1;
+	}
+	if (acc < 0 || acc > MAX_ACC)
+	{
+		printf("Invalid acceleration value\n");
+		return -1;
+	}
+	if (dec < 0 || dec > MAX_ACC)
+	{
+		printf("Invalid deceleration value\n");
+		return -1;
+	}
+	if (maxSpd < MIN_SPEED || maxSpd > MAX_SPEED)
+	{
+		printf("Invalid speed [10..60000]\n");
+	}
+
+	if (minSpd < MIN_SPEED || minSpd > maxSpd)
+	{
+		printf("Invalid speed [10..60000]\n");
+	}
+
+	aux16 = (u16)acc;
+	memcpy(buff, &aux16, sizeof(uint16_t));
+	aux16 = (u16)dec;
+	memcpy(buff + 2, &aux16, sizeof(uint16_t));
+	aux16 = (u16)maxSpd;
+	memcpy(buff + 4, &aux16, sizeof(uint16_t));
+	aux16 = (u16)minSpd;
+	memcpy(buff + 6, &aux16, sizeof(uint16_t));
+	if (OK != i2cMem8Write(dev, I2C_MEM_ODP_ACC, buff, 8))
+	{
+		printf("Fail to write\n");
+		return -1;
+	}
+	buff[0] = (uint8_t)ch;
+	if (OK != i2cMem8Write(dev, I2C_MEM_ODP_CMD, buff, 1))
+	{
+		printf("Fail to write\n");
+		return -1;
+	}
+	return OK;
+}
+
+int doMoveParWrite(int argc, char *argv[]);
+const CliCmdType CMD_MV_P_WRITE =
+	{"mvpwr", 2, &doMoveParWrite,
+		"\tmvpwr:		Write open drain output movement profile parameters\n",
+		"\tUsage:		ioplus <stack> mvpwr <channel> <acc> <dec> <min_speed> <max_speed>\n",
+		"",
+		"\tExample:		ioplus 0 mvpwr 1 1000 500 1000 20000; Set the open-drain output profile parameters \n"};
+
+int doMoveParWrite(int argc, char *argv[])
+{
+	int dev = -1;
+	int channel = 0;
+	int acc = 0;
+	int dec = 0;
+	int maxSpd = 0;
+	int minSpd = 0;
+
+	dev = doBoardInit(atoi(argv[1]));
+		if (dev <= 0)
+		{
+			return (FAIL);
+		}
+		if (gHwVer < 3)
+		{
+			printf(
+				"This feature is available on hardware versions greater or equal to 3.0!\n");
+			return (FAIL);
+		}
+
+	if(argc != 8)
+	{
+		printf("Invalid argument number %s", CMD_MV_P_WRITE.usage1);
+		return(FAIL);
+	}
+	channel = atoi(argv[3]);
+	acc = atoi(argv[4]);
+	dec = atoi(argv[5]);
+	minSpd = atoi(argv[6]);
+	maxSpd = atoi(argv[7]);
+
+	return odOutMoveSet(dev, channel, acc, dec, minSpd, maxSpd);
+}
 
 //***************************************************MIN/MAX sample count read write**********************************************
 int minMaxSamplesGet(int dev, int *val)
@@ -2587,20 +2686,22 @@ const CliCmdType *gCmdArray[] = {&CMD_VERSION, &CMD_HELP, &CMD_WAR, &CMD_PINOUT,
 	&CMD_RELAY_WRITE, &CMD_RELAY_READ, &CMD_TEST, &CMD_GPIO_WRITE,
 	&CMD_GPIO_READ, &CMD_GPIO_DIR_WRITE, &CMD_GPIO_DIR_READ,
 	&CMD_GPIO_EDGE_WRITE, &CMD_GPIO_EDGE_READ, &CMD_GPIO_CNT_READ,
-	&CMD_GPIO_CNT_RESET,&CMD_GPIO_ENC_CNT_READ,
-	&CMD_GPIO_ENC_CNT_RESET, &CMD_OPTO_READ, &CMD_OPTO_EDGE_READ,
-	&CMD_OPTO_EDGE_WRITE, &CMD_OPTO_CNT_READ, &CMD_OPTO_CNT_RESET,
-	&CMD_OPTO_ENC_WRITE, &CMD_OPTO_ENC_READ, &CMD_OPTO_ENC_CNT_READ,
-	&CMD_OPTO_ENC_CNT_RESET, &CMD_OD_READ, &CMD_OD_WRITE, &CMD_OD_CNT_READ,
-	&CMD_OD_CNT_WRITE, &CMD_OD_CNT_RST, &CMD_DAC_READ, &CMD_DAC_WRITE,
-	&CMD_ADC_READ, &CMD_ADC_READ_MAX, &CMD_ADC_READ_MIN,
-	&CMD_MIN_MAX_SAMPLE_WRITE, &CMD_MIN_MAX_SAMPLE_READ, &CMD_ADC_CAL,
-	&CMD_ADC_CAL_RST, &CMD_DAC_CAL, &CMD_DAC_CAL_RST, &CMD_WDT_RELOAD,
-	&CMD_WDT_SET_PERIOD, &CMD_WDT_GET_PERIOD, &CMD_WDT_SET_INIT_PERIOD,
-	&CMD_WDT_GET_INIT_PERIOD, &CMD_WDT_SET_OFF_PERIOD, &CMD_WDT_GET_OFF_PERIOD,
-	&CMD_IO_TEST, &CMD_PWM_FREQ_READ, &CMD_PWM_FREQ_WRITE, &CMD_OWB_RD,
-	&CMD_OWB_ID_RD, &CMD_OWB_SNS_CNT_RD, &CMD_OWB_SCAN,
-	&CMD_OPTO_OD_CMD_SET,
+	&CMD_GPIO_CNT_RESET, &CMD_GPIO_ENC_CNT_READ, &CMD_GPIO_ENC_CNT_RESET,
+	&CMD_OPTO_READ, &CMD_OPTO_EDGE_READ, &CMD_OPTO_EDGE_WRITE,
+	&CMD_OPTO_CNT_READ, &CMD_OPTO_CNT_RESET, &CMD_OPTO_ENC_WRITE,
+	&CMD_OPTO_ENC_READ, &CMD_OPTO_ENC_CNT_READ, &CMD_OPTO_ENC_CNT_RESET,
+	&CMD_OD_READ, &CMD_OD_WRITE, &CMD_OD_CNT_READ, &CMD_OD_CNT_WRITE,
+	&CMD_OD_CNT_RST, &CMD_DAC_READ, &CMD_DAC_WRITE, &CMD_ADC_READ,
+	&CMD_ADC_READ_MAX, &CMD_ADC_READ_MIN, &CMD_MIN_MAX_SAMPLE_WRITE,
+	&CMD_MIN_MAX_SAMPLE_READ, &CMD_ADC_CAL, &CMD_ADC_CAL_RST, &CMD_DAC_CAL,
+	&CMD_DAC_CAL_RST, &CMD_WDT_RELOAD, &CMD_WDT_SET_PERIOD, &CMD_WDT_GET_PERIOD,
+	&CMD_WDT_SET_INIT_PERIOD, &CMD_WDT_GET_INIT_PERIOD, &CMD_WDT_SET_OFF_PERIOD,
+	&CMD_WDT_GET_OFF_PERIOD, &CMD_IO_TEST, &CMD_PWM_FREQ_READ,
+	&CMD_PWM_FREQ_WRITE, &CMD_OWB_RD, &CMD_OWB_ID_RD, &CMD_OWB_SNS_CNT_RD,
+	&CMD_OWB_SCAN, &CMD_OPTO_OD_CMD_SET,
+#ifdef MOVE_PROFILE
+	&CMD_MV_P_WRITE,
+#endif
 	NULL}; //null terminated array of cli structure pointers
 
 int main(int argc, char *argv[])

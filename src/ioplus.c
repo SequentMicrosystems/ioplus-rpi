@@ -29,12 +29,9 @@
 
 #define UNUSED(X) (void)X      /* To avoid gcc/g++ warnings */
 
-<<<<<<< HEAD
+
 #define THREAD_SAFE
 #define MOVE_PROFILE
-=======
-//#define THREAD_SAFE
->>>>>>> 8ef71fc5cb86e9ef80a966a5187d017346a52888
 
 u8 gHwVer = 0;
 

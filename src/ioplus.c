@@ -29,7 +29,7 @@
 
 #define UNUSED(X) (void)X      /* To avoid gcc/g++ warnings */
 
-//#define THREAD_SAFE
+#define THREAD_SAFE
 
 u8 gHwVer = 0;
 

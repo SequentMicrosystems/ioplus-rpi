@@ -76,11 +76,28 @@ def setDacV(stack, channel, value):
     try:
         bus.write_word_data(DEVICE_ADDRESS + stack, DAC_VAL_MV_ADD + 2 * (channel - 1), raw)
     except Exception as e:
-        print(e)
         bus.close()
-        return -1
+        raise Exception(e)
     bus.close()
     return 1
+
+def getDacV(stack, channel):
+    if stack < 0 or stack > 7:
+        raise ValueError('Invalid stack level')
+    if channel < 1 or channel > 4:
+        raise ValueError('Invalid channel number')
+
+    bus = smbus2.SMBus(1)
+    DAC_VAL_MV_ADD = 40
+
+    try:
+        raw = bus.read_word_data(DEVICE_ADDRESS + stack, DAC_VAL_MV_ADD + 2 * (channel - 1))
+        val = float(raw) / 1000
+        bus.close()
+        return val
+    except Exception as e:
+        bus.close()
+        raise Exception(e)
 
 
 def setOdPwm(stack, channel, value):
@@ -98,9 +115,32 @@ def setOdPwm(stack, channel, value):
         bus.write_word_data(DEVICE_ADDRESS + stack, OD_PWM_VAL_RAW_ADD + 2 * (channel - 1), value)
     except Exception as e:
         bus.close()
-        return -1
+        raise Exception(e)
     bus.close()
     return 1
+
+def getOdPwm(stack, channel):
+    if stack < 0 or stack > 7:
+        raise ValueError('Invalid stack level')
+    if channel < 1 or channel > 4:
+        raise ValueError('Invalid channel number')
+    bus = smbus2.SMBus(1)
+    OD_PWM_VAL_RAW_ADD = 48
+    try:
+        raw = bus.read_word_data(DEVICE_ADDRESS + stack, OD_PWM_VAL_RAW_ADD + 2 * (channel - 1))
+        # TODO: doesn't need transformation?
+        bus.close()
+        return raw
+    except Exception as e:
+        bus.close()
+        raise Exception(e)
+
+def _fixed_setOdPwm(stack, channel, value):
+    return setOdPwm(stack, channel, int(value * 100))
+
+def _fixed_getOdPwm(stack, channel):
+    raw = getOdPwm(stack, channel)
+    return float(raw) / 100
 
 
 def setRelayCh(stack, channel, value):
@@ -138,7 +178,7 @@ def setRelays(stack, value):
         bus.write_byte_data(DEVICE_ADDRESS + stack, RELAY_VAL_ADD, value)
     except Exception as e:
         bus.close()
-        return -1
+        raise Exception(e)
     bus.close()
 
 

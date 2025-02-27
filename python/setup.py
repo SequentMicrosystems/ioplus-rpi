@@ -1,11 +1,16 @@
 import setuptools
 
+with open("README.md", "r") as f:
+    long_description = f.read()
+
 setuptools.setup(
-    name='SMioplus',
+    name='smioplus',
     packages=setuptools.find_packages(),
-    version='1.0.2',
+    version='1.0.6',
     license='MIT',
     description='Library to control Sequent Microsystems ioplus Card',
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     author='Sequent Microsystems',
     author_email='olcitu@gmail.com',
     url='https://sequentmicrosystems.com',

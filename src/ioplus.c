@@ -3,7 +3,7 @@
  *	Command-line interface to the Raspberry
  *	Pi's IOPLUS card.
  *	Copyright (c) 2016-2023 Sequent Microsystem
- *	<http://www.sequentmicrosystem.com>
+ *	<http://www.sequentmicrosystems.com>
  ***********************************************************************
  *	Author: Alexandru Burcea
  ***********************************************************************
@@ -25,7 +25,7 @@
 
 #define VERSION_BASE	(int)1
 #define VERSION_MAJOR	(int)3
-#define VERSION_MINOR	(int)6
+#define VERSION_MINOR	(int)7
 
 #define UNUSED(X) (void)X      /* To avoid gcc/g++ warnings */
 
@@ -494,6 +494,126 @@ int relayGet(int dev, int *val)
 	return OK;
 }
 
+int relayDefaultSet(int dev, int val)
+{
+	u8 buff[2];
+
+	buff[0] = 0xff & val;
+
+	return i2cMem8Write(dev, I2C_MEM_RELAY_DEFAULT, buff, 1);
+}
+
+int relayDefaultGet(int dev, int *val)
+{
+	u8 buff[2];
+
+	if (NULL == val)
+	{
+		return ERROR;
+	}
+	if (OK != i2cReadByteAS(dev, I2C_MEM_RELAY_DEFAULT, buff))
+	{
+		return ERROR;
+	}
+	*val = buff[0];
+	return OK;
+}
+int relayDefaultChGet(int dev, u8 channel, OutStateEnumType *state)
+{
+	u8 buff[2];
+
+	if (NULL == state)
+	{
+		return ERROR;
+	}
+
+	if ( (channel < CHANNEL_NR_MIN) || (channel > RELAY_CH_NR_MAX))
+	{
+		printf("Invalid relay nr!\n");
+		return ERROR;
+	}
+
+//	if (FAIL == i2cMem8Read(dev, I2C_MEM_RELAY_VAL_ADD, buff, 1))
+//	{
+//		return ERROR;
+//	}
+	if (OK != i2cReadByteAS(dev, I2C_MEM_RELAY_DEFAULT, buff))
+	{
+		return ERROR;
+	}
+	if (buff[0] & (1 << (channel - 1)))
+	{
+		*state = ON;
+	}
+	else
+	{
+		*state = OFF;
+	}
+	return OK;
+}
+// open drain default access functions
+
+int odDefaultSet(int dev, int val)
+{
+	u8 buff[2];
+
+	buff[0] = 0xff & val;
+
+	return i2cMem8Write(dev, I2C_MEM_OD_DEFAULT, buff, 1);
+}
+
+int odDefaultGet(int dev, int *val)
+{
+	u8 buff[2];
+
+	if (NULL == val)
+	{
+		return ERROR;
+	}
+	if (OK != i2cReadByteAS(dev, I2C_MEM_OD_DEFAULT, buff))
+	{
+		return ERROR;
+	}
+	*val = buff[0];
+	return OK;
+}
+int odDefaultChGet(int dev, u8 channel, OutStateEnumType *state)
+{
+	u8 buff[2];
+
+	if (NULL == state)
+	{
+		return ERROR;
+	}
+
+	if ( (channel < CHANNEL_NR_MIN) || (channel > OD_CH_NO))
+	{
+		printf("Invalid relay nr!\n");
+		return ERROR;
+	}
+
+//	if (FAIL == i2cMem8Read(dev, I2C_MEM_RELAY_VAL_ADD, buff, 1))
+//	{
+//		return ERROR;
+//	}
+	if (OK != i2cReadByteAS(dev, I2C_MEM_OD_DEFAULT, buff))
+	{
+		return ERROR;
+	}
+	if (buff[0] & (1 << (channel - 1)))
+	{
+		*state = ON;
+	}
+	else
+	{
+		*state = OFF;
+	}
+	return OK;
+}
+
+
+
+
 int doRelayWrite(int argc, char *argv[]);
 const CliCmdType CMD_RELAY_WRITE = {"relwr", 2, &doRelayWrite,
 	"\trelwr:		Set relays On/Off\n",
@@ -810,6 +930,263 @@ int doRelayTest(int argc, char *argv[])
 	relaySet(dev, 0);
 	return OK;
 }
+
+//*********************************Default relays set/get ********************
+
+int doRelayDefWrite(int argc, char *argv[]);
+const CliCmdType CMD_RELAY_DEF_WRITE = {"relfswr", 2, &doRelayDefWrite,
+	"\trelfswr:		Set relays fail safe state (power-up and watchdog repower events loads this state)\n",
+	"\tUsage:		ioplus <stack> relfswr <value>\n",
+	"",
+	"\tExample:		ioplus 0 relfswr 15; relay 1 to 4 on and rest off if failsafe conditions occur on Board #0\n"};
+
+int doRelayDefWrite(int argc, char *argv[])
+{
+	//int pin = 0;
+	//OutStateEnumType state = STATE_COUNT;
+	int val = 0;
+	int dev = 0;
+	//OutStateEnumType stateR = STATE_COUNT;
+	int valR = 0;
+	int retry = 0;
+
+	if(argc != 4)
+	{
+		printf("%s", CMD_RELAY_DEF_WRITE.usage1);
+		return (FAIL);
+	}
+
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		return (FAIL);
+	}
+
+		val = atoi(argv[3]);
+		if (val < 0 || val > 255)
+		{
+			printf("Invalid relay value\n");
+			return (FAIL);
+		}
+
+		retry = RETRY_TIMES;
+		valR = -1;
+		while ( (retry > 0) && (valR != val))
+		{
+
+			if (OK != relayDefaultSet(dev, val))
+			{
+				printf("Fail to write!\n");
+				return (FAIL);
+			}
+			if (OK != relayDefaultGet(dev, &valR))
+			{
+				printf("Fail to read!\n");
+				return (FAIL);
+			}
+		}
+		if (retry == 0)
+		{
+			printf("Fail to write!\n");
+			return (FAIL);
+		}
+
+	return OK;
+}
+
+int doRelayDefaultRead(int argc, char *argv[]);
+const CliCmdType CMD_RELAY_DEF_READ = {"relfsrd", 2, &doRelayDefaultRead,
+	"\trelfsrd:		Read relays state for fail safe (powerup and watchdog reset event)\n",
+	"\tUsage:		ioplus <stack> relfsrd <channel>\n",
+	"\tUsage:		ioplus <stack> relfsrd\n",
+	"\tExample:		ioplus 0 relfsrd 2; Read Fail Sage Status of Relay #2 on Board #0\n"};
+
+int doRelayDefaultRead(int argc, char *argv[])
+{
+	int pin = 0;
+	int val = 0;
+	int dev = 0;
+	OutStateEnumType state = STATE_COUNT;
+
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		return (FAIL);
+	}
+
+	if (argc == 4)
+	{
+		pin = atoi(argv[3]);
+		if ( (pin < CHANNEL_NR_MIN) || (pin > RELAY_CH_NR_MAX))
+		{
+			printf("Relay number value out of range!\n");
+			return (FAIL);
+		}
+
+		if (OK != relayDefaultChGet(dev, pin, &state))
+		{
+			printf("Fail to read!\n");
+			return (FAIL);
+		}
+		if (state != 0)
+		{
+			printf("1\n");
+		}
+		else
+		{
+			printf("0\n");
+		}
+	}
+	else if (argc == 3)
+	{
+		if (OK != relayDefaultGet(dev, &val))
+		{
+			printf("Fail to read!\n");
+			return (FAIL);
+		}
+		printf("%d\n", val);
+	}
+	else
+	{
+		printf("%s", CMD_RELAY_DEF_READ.usage1);
+		printf("%s", CMD_RELAY_DEF_READ.usage2);
+		return (FAIL);
+	}
+	return OK;
+}
+
+
+//****************************************************************************
+
+
+
+
+//*********************************Default open drain set/get ********************
+
+int doOdDefWrite(int argc, char *argv[]);
+const CliCmdType CMD_OD_DEF_WRITE = {"odfswr", 2, &doOdDefWrite,
+	"\todfswr:		Set open drain output fail safe state (power-up and watchdog repower events loads this state)\n",
+	"\tUsage:		ioplus <stack> odfswr <value>\n",
+	"",
+	"\tExample:		ioplus 0 odfswr 3; open drain channels 1 and 2 on (pwm = 100%)  and rest off if failsafe conditions occur on Board #0\n"};
+
+int doOdDefWrite(int argc, char *argv[])
+{
+	//int pin = 0;
+	//OutStateEnumType state = STATE_COUNT;
+	int val = 0;
+	int dev = 0;
+	//OutStateEnumType stateR = STATE_COUNT;
+	int valR = 0;
+	int retry = 0;
+
+	if(argc != 4)
+	{
+		printf("%s", CMD_OD_DEF_WRITE.usage1);
+		return (FAIL);
+	}
+
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		return (FAIL);
+	}
+
+		val = atoi(argv[3]);
+		if (val < 0 || val > 15)
+		{
+			printf("Invalid open drain mask value\n");
+			return (FAIL);
+		}
+
+		retry = RETRY_TIMES;
+		valR = -1;
+		while ( (retry > 0) && (valR != val))
+		{
+
+			if (OK != odDefaultSet(dev, val))
+			{
+				printf("Fail to write!\n");
+				return (FAIL);
+			}
+			if (OK != odDefaultGet(dev, &valR))
+			{
+				printf("Fail to read!\n");
+				return (FAIL);
+			}
+		}
+		if (retry == 0)
+		{
+			printf("Fail to write!\n");
+			return (FAIL);
+		}
+
+	return OK;
+}
+
+int doOdDefaultRead(int argc, char *argv[]);
+const CliCmdType CMD_OD_DEF_READ = {"odfsrd", 2, &doOdDefaultRead,
+	"\todfsrd:		Read open drain outputs state for fail safe (powerup and watchdog reset event)\n",
+	"\tUsage:		ioplus <stack> odfsrd <channel>\n",
+	"\tUsage:		ioplus <stack> odfsrd\n",
+	"\tExample:		ioplus 0 odfsrd 2; Read Fail Safe Status of OD #2 on Board #0\n"};
+
+int doOdDefaultRead(int argc, char *argv[])
+{
+	int pin = 0;
+	int val = 0;
+	int dev = 0;
+	OutStateEnumType state = STATE_COUNT;
+
+	dev = doBoardInit(atoi(argv[1]));
+	if (dev <= 0)
+	{
+		return (FAIL);
+	}
+
+	if (argc == 4)
+	{
+		pin = atoi(argv[3]);
+		if ( (pin < CHANNEL_NR_MIN) || (pin > OD_CH_NO))
+		{
+			printf("OD channel number value out of range!\n");
+			return (FAIL);
+		}
+
+		if (OK != odDefaultChGet(dev, pin, &state))
+		{
+			printf("Fail to read!\n");
+			return (FAIL);
+		}
+		if (state != 0)
+		{
+			printf("1\n");
+		}
+		else
+		{
+			printf("0\n");
+		}
+	}
+	else if (argc == 3)
+	{
+		if (OK != odDefaultGet(dev, &val))
+		{
+			printf("Fail to read!\n");
+			return (FAIL);
+		}
+		printf("%d\n", val);
+	}
+	else
+	{
+		printf("%s", CMD_OD_DEF_READ.usage1);
+		printf("%s", CMD_OD_DEF_READ.usage2);
+		return (FAIL);
+	}
+	return OK;
+}
+
+
+//****************************************************************************
 
 int doGpioWrite(int argc, char *argv[]);
 const CliCmdType CMD_GPIO_WRITE = {"gpiowr", 2, &doGpioWrite,
@@ -2606,7 +2983,7 @@ int doOwbIdGet(int argc, char *argv[])
 
 	memcpy(&romID, &buff[0], 8);
 
-	printf("0x%lx\n", romID);
+	printf("0x%llx\n", romID);
 	return OK;
 }
 
@@ -2680,22 +3057,64 @@ const CliCmdType *gCmdArray[] = {&CMD_VERSION, &CMD_HELP, &CMD_WAR, &CMD_PINOUT,
 #ifdef HW_DEBUG
 	&CMD_ERR,
 #endif
-	&CMD_RELAY_WRITE, &CMD_RELAY_READ, &CMD_TEST, &CMD_GPIO_WRITE,
-	&CMD_GPIO_READ, &CMD_GPIO_DIR_WRITE, &CMD_GPIO_DIR_READ,
-	&CMD_GPIO_EDGE_WRITE, &CMD_GPIO_EDGE_READ, &CMD_GPIO_CNT_READ,
-	&CMD_GPIO_CNT_RESET, &CMD_GPIO_ENC_CNT_READ, &CMD_GPIO_ENC_CNT_RESET,
-	&CMD_OPTO_READ, &CMD_OPTO_EDGE_READ, &CMD_OPTO_EDGE_WRITE,
-	&CMD_OPTO_CNT_READ, &CMD_OPTO_CNT_RESET, &CMD_OPTO_ENC_WRITE,
-	&CMD_OPTO_ENC_READ, &CMD_OPTO_ENC_CNT_READ, &CMD_OPTO_ENC_CNT_RESET,
-	&CMD_OD_READ, &CMD_OD_WRITE, &CMD_OD_CNT_READ, &CMD_OD_CNT_WRITE,
-	&CMD_OD_CNT_RST, &CMD_DAC_READ, &CMD_DAC_WRITE, &CMD_ADC_READ,
-	&CMD_ADC_READ_MAX, &CMD_ADC_READ_MIN, &CMD_MIN_MAX_SAMPLE_WRITE,
-	&CMD_MIN_MAX_SAMPLE_READ, &CMD_ADC_CAL, &CMD_ADC_CAL_RST, &CMD_DAC_CAL,
-	&CMD_DAC_CAL_RST, &CMD_WDT_RELOAD, &CMD_WDT_SET_PERIOD, &CMD_WDT_GET_PERIOD,
-	&CMD_WDT_SET_INIT_PERIOD, &CMD_WDT_GET_INIT_PERIOD, &CMD_WDT_SET_OFF_PERIOD,
-	&CMD_WDT_GET_OFF_PERIOD, &CMD_IO_TEST, &CMD_PWM_FREQ_READ,
-	&CMD_PWM_FREQ_WRITE, &CMD_OWB_RD, &CMD_OWB_ID_RD, &CMD_OWB_SNS_CNT_RD,
-	&CMD_OWB_SCAN, &CMD_OPTO_OD_CMD_SET,
+	&CMD_RELAY_WRITE,
+	&CMD_RELAY_READ,
+	&CMD_TEST,
+	&CMD_RELAY_DEF_WRITE,
+	&CMD_RELAY_DEF_READ,
+	&CMD_OD_DEF_WRITE,
+	&CMD_OD_DEF_READ,
+	&CMD_GPIO_WRITE,
+	&CMD_GPIO_READ,
+	&CMD_GPIO_DIR_WRITE,
+	&CMD_GPIO_DIR_READ,
+	&CMD_GPIO_EDGE_WRITE,
+	&CMD_GPIO_EDGE_READ,
+	&CMD_GPIO_CNT_READ,
+	&CMD_GPIO_CNT_RESET,
+	&CMD_GPIO_ENC_CNT_READ,
+	&CMD_GPIO_ENC_CNT_RESET,
+	&CMD_OPTO_READ,
+	&CMD_OPTO_EDGE_READ,
+	&CMD_OPTO_EDGE_WRITE,
+	&CMD_OPTO_CNT_READ,
+	&CMD_OPTO_CNT_RESET,
+	&CMD_OPTO_ENC_WRITE,
+	&CMD_OPTO_ENC_READ,
+	&CMD_OPTO_ENC_CNT_READ,
+	&CMD_OPTO_ENC_CNT_RESET,
+	&CMD_OD_READ,
+	&CMD_OD_WRITE,
+	&CMD_OD_CNT_READ,
+	&CMD_OD_CNT_WRITE,
+	&CMD_OD_CNT_RST,
+	&CMD_DAC_READ,
+	&CMD_DAC_WRITE,
+	&CMD_ADC_READ,
+	&CMD_ADC_READ_MAX,
+	&CMD_ADC_READ_MIN,
+	&CMD_MIN_MAX_SAMPLE_WRITE,
+	&CMD_MIN_MAX_SAMPLE_READ,
+	&CMD_ADC_CAL,
+	&CMD_ADC_CAL_RST,
+	&CMD_DAC_CAL,
+	&CMD_DAC_CAL_RST,
+	&CMD_WDT_RELOAD,
+	&CMD_WDT_SET_PERIOD,
+	&CMD_WDT_GET_PERIOD,
+	&CMD_WDT_SET_INIT_PERIOD,
+	&CMD_WDT_GET_INIT_PERIOD,
+	&CMD_WDT_SET_OFF_PERIOD,
+	&CMD_WDT_GET_OFF_PERIOD,
+	&CMD_IO_TEST,
+	&CMD_PWM_FREQ_READ,
+	&CMD_PWM_FREQ_WRITE,
+	&CMD_OWB_RD,
+	&CMD_OWB_ID_RD,
+	&CMD_OWB_SNS_CNT_RD,
+	&CMD_OWB_SCAN,
+	&CMD_OPTO_OD_CMD_SET,
+
 #ifdef MOVE_PROFILE
 	&CMD_MV_P_WRITE,
 #endif

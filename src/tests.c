@@ -449,7 +449,7 @@ int doV2Tests(int dev)
 		if (OK != adcGet(dev, adcCh2[i], &val))
 		{
 			printf("Fail to read adc\n");
-			exit(1);
+			return -1; //exit(1);
 		}
 		total++;
 		if ( (val < 0.1) && (val > -0.1))
@@ -482,7 +482,7 @@ int doLoopbackTest(int argc, char *argv[])
 	dev = doBoardInit(atoi(argv[1]));
 	if (dev <= 0)
 	{
-		exit(1);
+		return(-1);
 	}
 	
 	if (argc == 3 || argc == 4)
@@ -491,7 +491,7 @@ int doLoopbackTest(int argc, char *argv[])
 		{
 			if(OK != doV2Tests(dev))
 			{
-				exit(-1);
+				return(-1);
 			}
 		}
 		else
@@ -503,7 +503,7 @@ int doLoopbackTest(int argc, char *argv[])
 			if(OK != doV3tests(dev, testType))
 			{
 				printf("\n TEST FAIL! \n");
-				exit(-1);
+				return(-1);
 			}
 		}
 	}

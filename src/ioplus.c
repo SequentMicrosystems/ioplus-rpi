@@ -25,7 +25,7 @@
 
 #define VERSION_BASE	(int)1
 #define VERSION_MAJOR	(int)3
-#define VERSION_MINOR	(int)7
+#define VERSION_MINOR	(int)8
 
 #define UNUSED(X) (void)X      /* To avoid gcc/g++ warnings */
 
@@ -3131,7 +3131,7 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 #ifdef THREAD_SAFE
-	sem_t *semaphore = sem_open("/SMI2C_SEM", O_CREAT);
+	sem_t *semaphore = sem_open("/SMI2C_SEM", O_CREAT, 0000666, 3);//sem_open("/SMI2C_SEM", O_CREAT);
 	int semVal = 2;
 	sem_wait(semaphore);
 #endif

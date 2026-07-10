@@ -13,7 +13,7 @@ oldCount = -1
 try:
     while True:
         count = iop.getOptoCount(stack, channel)
-        if count >= 0 and count != oldCount:
+        if count != oldCount:
             oldCount = count
             sys.stdout.write("\r%d    " % oldCount)
             sys.stdout.flush()
